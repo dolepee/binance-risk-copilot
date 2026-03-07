@@ -882,7 +882,7 @@ mark {
 
 .riskWorkbench {
   display: grid;
-  gap: clamp(24px, 4vw, 48px);
+  gap: clamp(18px, 3vw, 30px);
   padding-bottom: var(--space-6);
 }
 
@@ -956,7 +956,7 @@ mark {
 }
 
 .heroStage {
-  min-height: calc(100vh - 160px);
+  min-height: clamp(540px, 74vh, 680px);
   display: grid;
   align-items: center;
 }
@@ -976,9 +976,9 @@ mark {
 }
 
 .heroPanel {
-  padding: clamp(28px, 5vw, 56px);
+  padding: clamp(24px, 4vw, 48px);
   display: grid;
-  gap: clamp(24px, 4vw, 40px);
+  gap: clamp(18px, 3vw, 28px);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -1024,7 +1024,7 @@ mark {
 
 .heroActions {
   display: grid;
-  gap: var(--space-2);
+  gap: 10px;
   justify-items: center;
 }
 
@@ -1044,7 +1044,7 @@ mark {
   max-width: 980px;
   margin: 0 auto;
   display: grid;
-  gap: var(--space-3);
+  gap: 14px;
 }
 
 .heroScenarioHeader {
@@ -1115,10 +1115,90 @@ mark {
   font-size: var(--text-sm);
 }
 
-.storyNote {
-  padding: clamp(20px, 3vw, 28px);
+.scenarioVerdictPreview {
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   display: grid;
+  gap: 16px;
+  text-align: left;
+  animation: verdictReveal 280ms ease-out;
+}
+
+.scenarioVerdictPreview-safe {
+  border-color: color-mix(in srgb, var(--ok) 34%, var(--border) 66%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--ok) 8%, var(--card) 92%), color-mix(in srgb, var(--ok) 5%, var(--surface-soft) 95%));
+}
+
+.scenarioVerdictPreview-caution {
+  border-color: color-mix(in srgb, var(--warn) 34%, var(--border) 66%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--warn) 8%, var(--card) 92%), color-mix(in srgb, var(--warn) 5%, var(--surface-soft) 95%));
+}
+
+.scenarioVerdictPreview-danger {
+  border-color: color-mix(in srgb, var(--bad) 34%, var(--border) 66%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--bad) 8%, var(--card) 92%), color-mix(in srgb, var(--bad) 5%, var(--surface-soft) 95%));
+}
+
+.scenarioVerdictTop,
+.scenarioVerdictActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.scenarioVerdictCopy {
+  display: grid;
+  gap: 10px;
+  max-width: 60ch;
+}
+
+.scenarioVerdictCopy p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.scenarioVerdictScore {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  flex-shrink: 0;
+}
+
+.scenarioVerdictScore strong {
+  font-size: clamp(3rem, 8vw, 4.2rem);
+  line-height: 0.88;
+}
+
+.scenarioVerdictScore span {
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+}
+
+.scenarioVerdictSetup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.scenarioVerdictActions p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.storyNote {
+  padding: clamp(18px, 3vw, 24px);
+  display: grid;
+  gap: 10px;
 }
 
 .storyNote p {
@@ -1130,30 +1210,30 @@ mark {
 
 .flowSection {
   display: grid;
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .sectionIntro {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: 14px;
 }
 
 .sectionIntro p {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   max-width: 64ch;
 }
 
 .tradeCard,
 .verdictCard,
 .saferSetupCard {
-  padding: clamp(22px, 4vw, 36px);
+  padding: clamp(20px, 3.5vw, 30px);
 }
 
 .tradeCard {
   display: grid;
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .tradeContextStrip,
@@ -1161,7 +1241,7 @@ mark {
 .metricGrid,
 .saferSetupGrid {
   display: grid;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
 .tradeContextStrip {
@@ -1194,7 +1274,7 @@ mark {
 .miniFieldGrid,
 .verdictMainGrid {
   display: grid;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
 .tradeGrid,
@@ -1258,7 +1338,7 @@ mark {
   align-items: flex-start;
   gap: var(--space-3);
   cursor: pointer;
-  padding: 18px 20px;
+  padding: 16px 18px;
 }
 
 .detailsSummary::-webkit-details-marker {
@@ -1295,19 +1375,19 @@ mark {
 }
 
 .detailsBody {
-  padding: 0 20px 20px;
+  padding: 0 18px 18px;
   border-top: 1px solid var(--border);
   display: grid;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
 .miniPanel {
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--surface-soft) 88%, #10141a 12%);
   display: grid;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
 .miniPanelHeader {
@@ -1345,9 +1425,11 @@ mark {
 
 .verdictCard {
   display: grid;
-  gap: var(--space-4);
+  gap: 18px;
   position: relative;
   overflow: hidden;
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--card) 96%, #0f1318 4%), color-mix(in srgb, var(--card) 82%, #0d1116 18%));
   animation: verdictReveal 360ms ease-out;
 }
 
@@ -1366,18 +1448,19 @@ mark {
 .verdictTopbar {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: 18px;
   align-items: flex-start;
 }
 
 .verdictTitleRow {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: flex-start;
 }
 
 .verdictTitleRow h2 {
   font-size: clamp(1.6rem, 3vw, 2.8rem);
+  margin: 0;
 }
 
 .verdictPrompt {
@@ -1417,7 +1500,7 @@ mark {
 
 .verdictScoreBlock {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   justify-items: end;
 }
 
@@ -1445,12 +1528,12 @@ mark {
 
 .verdictNarrative,
 .verdictReasonCard {
-  padding: 20px;
+  padding: 18px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-soft) 90%, #10141a 10%);
+  background: color-mix(in srgb, var(--surface-soft) 93%, #10141a 7%);
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .assistantHeadline {
@@ -1472,7 +1555,7 @@ mark {
 .recommendationList {
   margin: 0;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .reasonList {
@@ -1481,12 +1564,19 @@ mark {
 }
 
 .reasonItem {
-  gap: 4px;
+  gap: 8px;
+  padding: 16px 18px;
 }
 
-.reasonItem span {
-  font-size: var(--text-sm);
-  line-height: 1.55;
+.reasonTitle {
+  display: block;
+  line-height: 1.35;
+}
+
+.reasonBody {
+  display: block;
+  font-size: 0.94rem;
+  line-height: 1.68;
 }
 
 .reasonItem-good {
@@ -1515,22 +1605,22 @@ mark {
 
 .saferSetupCard {
   display: grid;
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .saferSetupHighlight {
-  padding: 20px;
+  padding: 18px;
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
   background:
     linear-gradient(165deg, color-mix(in srgb, var(--accent) 10%, var(--surface-soft) 90%), color-mix(in srgb, var(--accent) 6%, var(--card) 94%));
   display: grid;
-  gap: var(--space-4);
+  gap: 18px;
 }
 
 .saferSetupHeader {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .saferSetupHeader p {
@@ -1550,7 +1640,7 @@ mark {
 
 .actionPanel {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .recommendationList {
@@ -1610,7 +1700,7 @@ mark {
 }
 
 .demoCallout {
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1672,7 +1762,8 @@ mark {
   .heroScenarioGrid,
   .tradeContextStrip,
   .verdictMetrics,
-  .saferSetupGrid {
+  .saferSetupGrid,
+  .scenarioVerdictSetup {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1693,6 +1784,12 @@ mark {
   .saferSetupCard,
   .demoHero {
     padding: var(--space-4);
+  }
+
+  .storyNote,
+  .scenarioVerdictPreview,
+  .demoCallout {
+    padding: 16px;
   }
 
   .heroPanel,
@@ -1722,13 +1819,16 @@ mark {
   .advancedGrid,
   .verdictMetrics,
   .metricGrid,
-  .saferSetupGrid {
+  .saferSetupGrid,
+  .scenarioVerdictSetup {
     grid-template-columns: 1fr;
   }
 
   .sectionIntro,
   .detailsSummary,
   .verdictTopbar,
+  .scenarioVerdictTop,
+  .scenarioVerdictActions,
   .toggleRow,
   .positionRow,
   .findingTop,
@@ -1743,5 +1843,18 @@ mark {
 
   .verdictScoreBlock {
     justify-items: start;
+  }
+
+  .scenarioVerdictScore {
+    justify-items: start;
+  }
+
+  .reasonItem {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .reasonBody {
+    font-size: 0.92rem;
   }
 }

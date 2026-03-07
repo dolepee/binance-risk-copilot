@@ -10,6 +10,7 @@ import {
   formatUsd,
   statusLabel,
   type PortfolioPresetId,
+  type RiskAnalysis,
   type Side,
   type SymbolCode,
 } from "@/lib/risk-copilot";
@@ -115,6 +116,34 @@ function setupHeading(status: "safe" | "caution" | "danger"): string {
   return "Safer setup";
 }
 
+function saferSetupMessage(trade: { leverage: number; positionNotionalUsd: number }, analysis: RiskAnalysis): string {
+  const leverageReduced = analysis.saferSetup.leverage < trade.leverage - 0.1;
+  const sizeReduced = analysis.saferSetup.positionNotionalUsd < trade.positionNotionalUsd - 1;
+
+  if (analysis.status === "safe") {
+    return "This version already fits the current guardrails and keeps the downside clearly defined.";
+  }
+
+  if (leverageReduced && !sizeReduced) {
+    return "The main fix here is reduced leverage, not smaller size. This revision lowers the biggest risk trigger while keeping the trade structure intact.";
+  }
+
+  if (!leverageReduced && sizeReduced) {
+    return "The main fix here is smaller size. This version fits the current guardrails by cutting the risk budget back inside policy.";
+  }
+
+  if (leverageReduced && sizeReduced) {
+    return "This version fits the current guardrails by lowering leverage and trimming size before the order is sent.";
+  }
+
+  return "This version fits the current guardrails by preserving defined downside and removing the biggest risk trigger.";
+}
+
+function breakdownToggleLabel(status: "safe" | "caution" | "danger"): string {
+  if (status === "safe") return "View full risk details";
+  return "See why this trade was flagged";
+}
+
 export function RiskCopilotWorkbench() {
   const tradeSectionRef = useRef<HTMLElement | null>(null);
   const verdictSectionRef = useRef<HTMLElement | null>(null);
@@ -207,6 +236,10 @@ export function RiskCopilotWorkbench() {
     tradeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function scrollToVerdict() {
+    verdictSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function reviewTrade() {
     setHasReviewed(true);
     setReviewSequence((value) => value + 1);
@@ -233,7 +266,6 @@ export function RiskCopilotWorkbench() {
     setStopLossPrice(String(defaultStopPrice(scenario.symbol, scenario.side, nextPrice)));
     setBaseShockPct(String(scenario.baseShockPct));
     setHasReviewed(true);
-    setReviewSequence((value) => value + 1);
   }
 
   return (
@@ -276,6 +308,44 @@ export function RiskCopilotWorkbench() {
               ))}
             </div>
             <p className="heroScenarioNote">Try a demo scenario, or scroll down to enter your own trade.</p>
+
+            {activeScenario && hasReviewed ? (
+              <article className={`scenarioVerdictPreview scenarioVerdictPreview-${analysis.status}`}>
+                <div className="scenarioVerdictTop">
+                  <div className="scenarioVerdictCopy">
+                    <span className={`riskStatus riskStatus-${analysis.status}`}>{statusLabel(analysis.status)}</span>
+                    <strong>{activeScenario.label}</strong>
+                    <p>{analysis.summary}</p>
+                  </div>
+                  <div className="scenarioVerdictScore">
+                    <strong style={{ color: scoreTone(analysis.score) }}>{analysis.score}</strong>
+                    <span>risk score</span>
+                  </div>
+                </div>
+
+                <div className="scenarioVerdictSetup">
+                  <div className="setupMetric">
+                    <span>Leverage</span>
+                    <strong>{analysis.saferSetup.leverage}x</strong>
+                  </div>
+                  <div className="setupMetric">
+                    <span>Notional</span>
+                    <strong>{formatUsd(analysis.saferSetup.positionNotionalUsd)}</strong>
+                  </div>
+                  <div className="setupMetric">
+                    <span>Stop-loss</span>
+                    <strong>{formatUsd(analysis.saferSetup.stopLossPrice)}</strong>
+                  </div>
+                </div>
+
+                <div className="scenarioVerdictActions">
+                  <p>{saferSetupMessage(resolvedTrade, analysis)}</p>
+                  <button type="button" className="buttonGhost" onClick={scrollToVerdict}>
+                    Open full review
+                  </button>
+                </div>
+              </article>
+            ) : null}
           </div>
         </div>
       </section>
@@ -632,8 +702,8 @@ export function RiskCopilotWorkbench() {
                   <ul className="reasonList">
                     {visibleReasons.map((finding) => (
                       <li key={`${finding.title}-${finding.level}`} className={`reasonItem reasonItem-${finding.level}`}>
-                        <strong>{finding.title}</strong>
-                        <span>{finding.detail}</span>
+                        <strong className="reasonTitle">{finding.title}</strong>
+                        <span className="reasonBody">{finding.detail}</span>
                       </li>
                     ))}
                   </ul>
@@ -670,7 +740,7 @@ export function RiskCopilotWorkbench() {
               <div className="saferSetupHighlight">
                 <div className="saferSetupHeader">
                   <span className="eyebrow">Recommended revision</span>
-                  <p>{analysis.status === "safe" ? "This setup already fits policy. These are the approved parameters." : "Use this setup if you want the trade to fit the current guardrails."}</p>
+                  <p>{saferSetupMessage(resolvedTrade, analysis)}</p>
                 </div>
 
                 <div className="saferSetupGrid">
@@ -705,8 +775,8 @@ export function RiskCopilotWorkbench() {
 
             <details className="detailsCard">
               <summary className="detailsSummary">
-                <span>See full breakdown</span>
-                <span>Policy, positions, correlation details, shock test, and full findings</span>
+                <span>{breakdownToggleLabel(analysis.status)}</span>
+                <span>Policy, positions, correlation details, shock test, and every guardrail used in the decision.</span>
               </summary>
 
               <div className="detailsBody">
