@@ -5,8 +5,9 @@ OpenClaw-powered Binance Futures risk review MVP.
 This project is a focused demo app for the Binance build challenge. It does not try to be a full trading terminal. The product goal is narrower: review a planned Futures trade before execution, explain the risk in plain English, and suggest a safer setup when the trade is too aggressive.
 
 ## Live Demo
-- Public URL: `http://16.16.120.1/binance-risk-copilot`
 - GitHub repo: `https://github.com/dolepee/binance-risk-copilot`
+- Public demo URL: `https://dolepee.github.io/binance-risk-copilot/`
+- The VPS app remains internal; the raw VPS IP is not used as the public demo link.
 
 ## What It Does
 - Reviews a proposed Binance Futures trade against account-level guardrails
@@ -55,8 +56,9 @@ This project is a focused demo app for the Binance build challenge. It does not 
 ## Checks
 - `npm run lint`
 - `npm run build`
+- `npm run build:pages`
 
-Both pass in the current state.
+All three pass in the current state.
 
 ## Project Structure
 - `src/lib/risk-copilot.ts`
@@ -84,4 +86,5 @@ Both pass in the current state.
 ## Recommended Next Steps
 - Add recording mode to hide form clutter during capture
 - Optionally wire read-only live Binance market data
+- Add a custom domain later if you want a shorter branded URL than GitHub Pages
 - Package a short demo video using the existing `/demo` script

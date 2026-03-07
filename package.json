@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pages": "STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/binance-risk-copilot next build",
     "start": "next start",
     "lint": "eslint",
     "test": "node -e \"console.log('no tests yet: smoke pass')\""

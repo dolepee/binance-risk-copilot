@@ -7,8 +7,6 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Main routes:
   - `/` workbench
   - `/demo` recording notes / judge script
-- Public URL:
-  - `http://16.16.120.1/binance-risk-copilot`
 - Local build status:
   - `npm run lint` passes
   - `npm run build` passes
@@ -39,7 +37,8 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Work was moved into `/home/qdee/binance-risk-copilot` so `/home/qdee/openclaw-mission-control` stays untouched.
 - Old Mission Control page routes and stale API routes were removed from the isolated app surface.
 - Public GitHub repo: `https://github.com/dolepee/binance-risk-copilot`
-- Deployed publicly under the existing VPS at `/binance-risk-copilot`, backed by a separate `binance-risk-copilot.service` on port `3002`.
+- Public demo URL: `https://dolepee.github.io/binance-risk-copilot/`
+- The VPS deployment remains internal on port `3002`; the raw VPS IP is not used as the public demo link.
 - The current scenario calibration is:
   - `safe` -> score `90`
   - `caution` -> score `59`
@@ -48,4 +47,4 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 ## Recommended Next Steps
 - Add recording mode to hide form noise during demo capture.
 - Optionally wire live read-only Binance market data for stronger realism.
-- Push this app to a public GitHub repo for the contest submission.
+- Add a custom domain later if a shorter branded demo URL is needed.
