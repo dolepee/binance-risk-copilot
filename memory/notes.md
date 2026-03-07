@@ -8,8 +8,12 @@
 - Added `/demo` with a short judge / recording walkthrough in `src/app/demo/page.tsx`.
 - Upgraded the verdict panel into a chat-style OpenClaw assistant review.
 - Added one-click demo scenario buttons for `safe`, `caution`, and `danger`.
+- Refactored the homepage into a linear 3-step UX with a hero, focused trade form, dominant verdict card, highlighted safer setup, and collapsed advanced/detail sections.
+- Simplified navigation to `How it works`, `Try a scenario`, and `Demo notes`.
 - Removed stale Mission Control routes and unused API endpoints from the isolated app surface.
 - Verified the app with `npm run lint` and `npm run build`; both pass.
 - Published the repo to `https://github.com/dolepee/binance-risk-copilot` via the authenticated OpenClaw VPS GitHub session.
 - Added a GitHub Pages deployment path for the short public URL `https://dolepee.github.io/binance-risk-copilot/`.
 - Kept the VPS app internal on port `3002` so the raw VPS IP is not used as the public demo link.
+- Fixed verdict reveal timing after review so the page scrolls to the verdict only after it mounts.
+- Fixed the live `Review this trade` bug caused by hidden native form validation on collapsed advanced fields by adding `noValidate` and correcting the wallet balance input constraint.

@@ -32,6 +32,19 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
   - safe
   - caution
   - danger
+- Refactored the homepage into a guided 3-step flow:
+  - hero with scenario presets
+  - focused trade entry
+  - dominant verdict and safer setup
+- Collapsed policy, wallet, and shock controls behind `Advanced settings`.
+- Collapsed portfolio, correlation, shock, and full findings behind `See full breakdown`.
+- Simplified the header nav to `How it works`, `Try a scenario`, and `Demo notes`.
+- Reworked the mobile layout so scenario buttons stack and the trade / verdict cards read cleanly on smaller screens.
+
+## Post-Launch Fixes
+- Fixed verdict reveal timing so the page scrolls only after the verdict section has rendered.
+- Fixed `Review this trade` being blocked by hidden browser validation in collapsed advanced fields.
+- Added `noValidate` to the trade form and corrected the wallet balance input constraints so the default values no longer fail native validation.
 
 ## Important Implementation Notes
 - Work was moved into `/home/qdee/binance-risk-copilot` so `/home/qdee/openclaw-mission-control` stays untouched.
