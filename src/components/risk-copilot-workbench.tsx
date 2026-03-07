@@ -140,6 +140,7 @@ export function RiskCopilotWorkbench() {
   const [baseShockPct, setBaseShockPct] = useState("-4");
   const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId | null>(null);
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [reviewSequence, setReviewSequence] = useState(0);
 
   useEffect(() => {
     setWalletBalanceUsd(String(preset.walletBalanceUsd));
@@ -152,6 +153,16 @@ export function RiskCopilotWorkbench() {
     setEntryPrice(String(nextEntry));
     setStopLossPrice(String(defaultStopPrice(symbol, side, nextEntry)));
   }, [side, symbol]);
+
+  useEffect(() => {
+    if (!hasReviewed || reviewSequence === 0) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      verdictSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasReviewed, reviewSequence]);
 
   const resolvedWalletBalance = parsePositiveNumber(walletBalanceUsd, preset.walletBalanceUsd);
   const resolvedDailyPnl = parseSignedNumber(dailyPnlUsd, preset.dailyPnlUsd);
@@ -196,15 +207,9 @@ export function RiskCopilotWorkbench() {
     tradeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function scrollToVerdict() {
-    window.setTimeout(() => {
-      verdictSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
-  }
-
   function reviewTrade() {
     setHasReviewed(true);
-    scrollToVerdict();
+    setReviewSequence((value) => value + 1);
   }
 
   function loadScenario(scenario: DemoScenario) {
@@ -228,7 +233,7 @@ export function RiskCopilotWorkbench() {
     setStopLossPrice(String(defaultStopPrice(scenario.symbol, scenario.side, nextPrice)));
     setBaseShockPct(String(scenario.baseShockPct));
     setHasReviewed(true);
-    scrollToVerdict();
+    setReviewSequence((value) => value + 1);
   }
 
   return (
