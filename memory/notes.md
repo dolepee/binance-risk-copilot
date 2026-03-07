@@ -10,3 +10,4 @@
 - Added one-click demo scenario buttons for `safe`, `caution`, and `danger`.
 - Removed stale Mission Control routes and unused API endpoints from the isolated app surface.
 - Verified the app with `npm run lint` and `npm run build`; both pass.
+- Published the repo to `https://github.com/dolepee/binance-risk-copilot` via the authenticated OpenClaw VPS GitHub session.

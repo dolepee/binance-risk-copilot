@@ -36,6 +36,7 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 ## Important Implementation Notes
 - Work was moved into `/home/qdee/binance-risk-copilot` so `/home/qdee/openclaw-mission-control` stays untouched.
 - Old Mission Control page routes and stale API routes were removed from the isolated app surface.
+- Public GitHub repo: `https://github.com/dolepee/binance-risk-copilot`
 - The current scenario calibration is:
   - `safe` -> score `90`
   - `caution` -> score `59`
