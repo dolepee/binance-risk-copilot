@@ -299,6 +299,7 @@ export function RiskCopilotWorkbench() {
 
         <form
           className="tradeCard"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
             reviewTrade();
@@ -458,7 +459,7 @@ export function RiskCopilotWorkbench() {
                       <span>Wallet balance (USD)</span>
                       <input
                         type="number"
-                        min="1"
+                        min="0"
                         step="100"
                         value={walletBalanceUsd}
                         onChange={(event) => {
