@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -9,12 +8,11 @@ type Props = {
 };
 
 const navItems = [
-  { href: "/", label: "Workbench" },
-  { href: "/demo", label: "Demo Notes" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#hero-scenarios", label: "Try a scenario" },
 ];
 
 export function AppShell({ children }: Props) {
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     if (typeof window === "undefined") return "dark";
@@ -43,7 +41,9 @@ export function AppShell({ children }: Props) {
       <header className="appHeader">
         <div className="topbar">
           <div className="brandBlock">
-            <h1>Binance Risk Copilot</h1>
+            <Link href="/">
+              <h1>Binance Risk Copilot</h1>
+            </Link>
             <p>OpenClaw-powered Futures risk review MVP</p>
           </div>
           <button
@@ -66,13 +66,11 @@ export function AppShell({ children }: Props) {
           </button>
           <nav id="main-nav" className={`navLinks ${isOpen ? "open" : ""}`} aria-label="Primary">
             {navItems.map((item) => {
-              const active = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={active ? "navLink isActive" : "navLink"}
-                  aria-current={active ? "page" : undefined}
+                  className="navLink"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
@@ -83,7 +81,10 @@ export function AppShell({ children }: Props) {
         </div>
         <div className="appHeaderNote">
           <span className="badge badgeWarn">Judge-ready MVP</span>
-          <span>One deterministic flow: review trade intent, explain risk, recommend a safer setup.</span>
+          <span>Three steps only: define the trade, get the verdict, use the safer setup.</span>
+          <Link href="/demo" className="inlineLink">
+            Demo notes
+          </Link>
         </div>
       </header>
 

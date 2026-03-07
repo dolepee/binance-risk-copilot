@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PORTFOLIO_PRESETS,
   SYMBOL_OPTIONS,
@@ -19,6 +19,7 @@ type DemoScenarioId = "safe" | "caution" | "danger";
 type DemoScenario = {
   id: DemoScenarioId;
   label: string;
+  shortLabel: string;
   summary: string;
   presetId: PortfolioPresetId;
   symbol: SymbolCode;
@@ -37,7 +38,8 @@ const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "safe",
     label: "Protected BNB swing",
-    summary: "Flat account, modest size, contained downside. This is the quick green-light demo.",
+    shortLabel: "Safe trade",
+    summary: "Flat account, modest size, and contained downside.",
     presetId: "flat",
     symbol: "BNBUSDT",
     side: "long",
@@ -49,7 +51,8 @@ const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "caution",
     label: "Oversized ETH setup",
-    summary: "Still tradable, but the assistant should ask for tighter sizing before execution.",
+    shortLabel: "Needs adjustment",
+    summary: "Tradable, but it should be tightened before execution.",
     presetId: "flat",
     symbol: "ETHUSDT",
     side: "long",
@@ -61,7 +64,8 @@ const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "danger",
     label: "Stacked majors blow-up",
-    summary: "High leverage on top of an already loaded book. This is the red reject state.",
+    shortLabel: "Unsafe - reject",
+    summary: "High leverage on top of an already loaded book.",
     presetId: "btc-heavy",
     symbol: "ETHUSDT",
     side: "long",
@@ -89,12 +93,32 @@ function scoreTone(score: number): string {
 }
 
 function assistantHeadline(status: "safe" | "caution" | "danger"): string {
-  if (status === "safe") return "Within policy. This trade can go through.";
-  if (status === "caution") return "Tradable, but tighten the setup before sending.";
-  return "Do not send this setup as-is.";
+  if (status === "safe") return "The setup fits your policy and the downside looks contained.";
+  if (status === "caution") return "This is close, but the trade should be tightened before it goes through.";
+  return "This setup is too aggressive for the current account context.";
+}
+
+function verdictHeading(status: "safe" | "caution" | "danger"): string {
+  if (status === "safe") return "SAFE TO PLACE";
+  if (status === "caution") return "NEEDS ADJUSTMENT";
+  return "UNSAFE - DO NOT PLACE";
+}
+
+function verdictSymbol(status: "safe" | "caution" | "danger"): string {
+  if (status === "safe") return "OK";
+  if (status === "caution") return "!";
+  return "X";
+}
+
+function setupHeading(status: "safe" | "caution" | "danger"): string {
+  if (status === "safe") return "Approved setup";
+  return "Safer setup";
 }
 
 export function RiskCopilotWorkbench() {
+  const tradeSectionRef = useRef<HTMLElement | null>(null);
+  const verdictSectionRef = useRef<HTMLElement | null>(null);
+
   const [presetId, setPresetId] = useState<PortfolioPresetId>("btc-heavy");
   const preset = PORTFOLIO_PRESETS[presetId];
 
@@ -114,7 +138,8 @@ export function RiskCopilotWorkbench() {
   const [leverage, setLeverage] = useState("20");
   const [stopLossPrice, setStopLossPrice] = useState(String(defaultStopPrice("ETHUSDT", "long")));
   const [baseShockPct, setBaseShockPct] = useState("-4");
-  const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId>("danger");
+  const [activeScenarioId, setActiveScenarioId] = useState<DemoScenarioId | null>(null);
+  const [hasReviewed, setHasReviewed] = useState(false);
 
   useEffect(() => {
     setWalletBalanceUsd(String(preset.walletBalanceUsd));
@@ -158,18 +183,29 @@ export function RiskCopilotWorkbench() {
     resolvedTrade,
   );
 
-  const dialStyle = {
-    background: `conic-gradient(${scoreTone(analysis.score)} ${analysis.score * 3.6}deg, rgba(255,255,255,0.08) 0deg)`,
-  };
-  const verdictLabel = statusLabel(analysis.status);
-  const userPrompt = `Review this ${resolvedTrade.side} ${resolvedTrade.symbol} Futures order: ${formatUsd(
-    resolvedTrade.positionNotionalUsd,
-  )} notional at ${resolvedTrade.leverage}x, entry ${formatUsd(resolvedTrade.entryPrice)}, ${
-    resolvedTrade.stopLossPrice == null ? "no stop-loss" : `stop ${formatUsd(resolvedTrade.stopLossPrice)}`
-  }.`;
-  const flaggedFindings = analysis.findings.filter((finding) => finding.level !== "good");
-  const visibleTags = flaggedFindings.length > 0 ? flaggedFindings : analysis.findings.slice(0, 2);
-  const activeScenario = DEMO_SCENARIOS.find((scenario) => scenario.id === activeScenarioId) ?? DEMO_SCENARIOS[2];
+  const visibleReasons = (analysis.findings.filter((finding) => finding.level !== "good").length > 0
+    ? analysis.findings.filter((finding) => finding.level !== "good")
+    : analysis.findings
+  ).slice(0, 3);
+  const recommendationPreview = analysis.recommendations.slice(0, 3);
+  const currentDrawdownPct = Math.max(0, (-resolvedDailyPnl / resolvedWalletBalance) * 100);
+  const drawdownAfterTradePct = currentDrawdownPct + (analysis.proposedRiskPct ?? 0);
+  const activeScenario = DEMO_SCENARIOS.find((scenario) => scenario.id === activeScenarioId) ?? null;
+
+  function scrollToTrade() {
+    tradeSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function scrollToVerdict() {
+    window.setTimeout(() => {
+      verdictSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }
+
+  function reviewTrade() {
+    setHasReviewed(true);
+    scrollToVerdict();
+  }
 
   function loadScenario(scenario: DemoScenario) {
     const nextPreset = PORTFOLIO_PRESETS[scenario.presetId];
@@ -191,356 +227,615 @@ export function RiskCopilotWorkbench() {
     setLeverage(String(scenario.leverage));
     setStopLossPrice(String(defaultStopPrice(scenario.symbol, scenario.side, nextPrice)));
     setBaseShockPct(String(scenario.baseShockPct));
+    setHasReviewed(true);
+    scrollToVerdict();
   }
 
   return (
     <section className="riskWorkbench">
-      <div className="riskHero">
-        <div className="riskHeroCopy">
-          <span className="eyebrow">OpenClaw MVP</span>
-          <h2>Binance Risk Copilot</h2>
-          <p className="leadText">
-            An assistant-first Futures review flow: set your risk policy, stage a trade, and see whether the account should
-            allow it through, trim it, or reject it.
-          </p>
-
-          <div className="heroBulletGrid">
-            <div className="heroBullet">
-              <strong>Trade Check</strong>
-              <span>Tests leverage, risk-to-stop, and daily drawdown headroom before execution.</span>
-            </div>
-            <div className="heroBullet">
-              <strong>Exposure Guard</strong>
-              <span>Flags hidden concentration when the new trade stacks into existing correlated positions.</span>
-            </div>
-            <div className="heroBullet">
-              <strong>Shock Test</strong>
-              <span>Models a BTC-led move and shows the expected hit to equity and liquidation pressure.</span>
-            </div>
+      <section className="heroStage">
+        <div className="heroPanel">
+          <span className="eyebrow">Binance Futures pre-trade assistant</span>
+          <div className="heroCopy">
+            <p className="heroKicker">OpenClaw risk review</p>
+            <h2>Enter a trade. Get a risk review before you place it.</h2>
+            <p className="heroLead">
+              Binance Risk Copilot checks your size, leverage, exposure, and downside before you hit confirm.
+            </p>
           </div>
-        </div>
 
-        <div className="riskScoreCard">
-          <div className={`riskStatus riskStatus-${analysis.status}`}>{statusLabel(analysis.status)}</div>
-          <div className="scoreDial" style={dialStyle}>
-            <div className="scoreDialInner">
-              <span className="scoreNumber">{analysis.score}</span>
-              <span className="scoreLabel">risk score</span>
-            </div>
-          </div>
-          <p>{analysis.summary}</p>
-        </div>
-      </div>
-
-      <div className="riskSummaryGrid">
-        <article className="summaryTile">
-          <span className="summaryLabel">Portfolio preset</span>
-          <strong>{preset.label}</strong>
-          <p>{preset.positions.length === 0 ? "No open positions." : `${preset.positions.length} live positions loaded for exposure checks.`}</p>
-        </article>
-        <article className="summaryTile">
-          <span className="summaryLabel">Projected max loss</span>
-          <strong>{formatUsd(analysis.proposedRiskUsd)}</strong>
-          <p>{analysis.proposedRiskPct == null ? "Requires a valid stop-loss." : `${formatPct(analysis.proposedRiskPct)} of wallet balance.`}</p>
-        </article>
-        <article className="summaryTile">
-          <span className="summaryLabel">Correlated exposure</span>
-          <strong>{formatPct(analysis.portfolioExposurePct)}</strong>
-          <p>After this trade, same-bucket exposure reaches this level versus your policy cap.</p>
-        </article>
-        <article className="summaryTile">
-          <span className="summaryLabel">Shock test</span>
-          <strong>{formatUsd(analysis.portfolioShockPnlUsd)}</strong>
-          <p>{analysis.shockBreachesLiquidation ? "Modeled move threatens liquidation." : `Post-shock equity: ${formatUsd(analysis.postShockEquityUsd)}.`}</p>
-        </article>
-      </div>
-
-      <article className="workbenchCard scenarioPanel">
-        <div className="cardHeader">
-          <div>
-            <h3>Demo scenarios</h3>
-            <p className="muted">One click loads a judge-ready state so you can record the exact safe, caution, and danger flows.</p>
-          </div>
-          <span className={`verdictChip verdictChip-${activeScenario.expectedStatus}`}>{activeScenario.label}</span>
-        </div>
-
-        <div className="scenarioGrid">
-          {DEMO_SCENARIOS.map((scenario) => (
-            <button
-              key={scenario.id}
-              type="button"
-              className={`scenarioButton ${activeScenarioId === scenario.id ? "isActive" : ""}`}
-              onClick={() => loadScenario(scenario)}
-            >
-              <span className={`riskStatus riskStatus-${scenario.expectedStatus}`}>{statusLabel(scenario.expectedStatus)}</span>
-              <strong>{scenario.label}</strong>
-              <span>{scenario.summary}</span>
+          <div className="heroActions">
+            <button type="button" className="buttonPrimary heroPrimaryAction" onClick={scrollToTrade}>
+              Review a trade
             </button>
-          ))}
+            <p className="heroHelper">Paste a planned Binance Futures trade and get an instant risk verdict before you place it.</p>
+          </div>
+
+          <div className="heroScenarioBlock" id="hero-scenarios">
+            <div className="heroScenarioHeader">
+              <strong>Try example scenarios</strong>
+              <span>Start here if you want the full product value in under 10 seconds.</span>
+            </div>
+            <div className="heroScenarioGrid">
+              {DEMO_SCENARIOS.map((scenario) => (
+                <button
+                  key={scenario.id}
+                  type="button"
+                  className={`heroScenarioButton ${activeScenarioId === scenario.id ? "isActive" : ""}`}
+                  onClick={() => loadScenario(scenario)}
+                >
+                  <span className={`riskStatus riskStatus-${scenario.expectedStatus}`}>{scenario.shortLabel}</span>
+                  <strong>{scenario.label}</strong>
+                  <span>{scenario.summary}</span>
+                </button>
+              ))}
+            </div>
+            <p className="heroScenarioNote">Try a demo scenario, or scroll down to enter your own trade.</p>
+          </div>
         </div>
-      </article>
+      </section>
 
-      <div className="workbenchGrid">
-        <div className="workbenchColumn">
-          <article className="workbenchCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Account and policy</h3>
-                <p className="muted">This defines the guardrails the assistant enforces.</p>
-              </div>
+      <section className="storyNote" id="how-it-works">
+        <span className="sectionStep">How it works</span>
+        <p>
+          Paste a planned Binance Futures trade. The copilot checks leverage, sizing, concentration, and downside against
+          your account context. Then it tells you whether the trade fits policy or shows the safer setup to use instead.
+        </p>
+      </section>
+
+      <section className="flowSection tradeStage" id="planned-trade" ref={tradeSectionRef}>
+        <div className="sectionIntro">
+          <span className="sectionStep">Step 1</span>
+          <div>
+            <h3>Planned trade</h3>
+            <p>Enter the trade you want to place, then request a review.</p>
+          </div>
+        </div>
+
+        <form
+          className="tradeCard"
+          onSubmit={(event) => {
+            event.preventDefault();
+            reviewTrade();
+          }}
+        >
+          <div className="tradeContextStrip">
+            <div className="contextChip">
+              <span>Portfolio</span>
+              <strong>{preset.label}</strong>
             </div>
-
-            <div className="fieldGrid">
-              <label className="field">
-                <span>Portfolio profile</span>
-                <select value={presetId} onChange={(event) => setPresetId(event.target.value as PortfolioPresetId)}>
-                  {Object.entries(PORTFOLIO_PRESETS).map(([value, item]) => (
-                    <option key={value} value={value}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>Wallet balance (USD)</span>
-                <input type="number" min="1" step="100" value={walletBalanceUsd} onChange={(event) => setWalletBalanceUsd(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Today&apos;s realized PnL (USD)</span>
-                <input type="number" step="10" value={dailyPnlUsd} onChange={(event) => setDailyPnlUsd(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Max leverage</span>
-                <input type="number" min="1" step="0.5" value={maxLeverage} onChange={(event) => setMaxLeverage(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Max risk / trade (%)</span>
-                <input type="number" min="0.25" step="0.25" value={maxRiskPerTradePct} onChange={(event) => setMaxRiskPerTradePct(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Max daily drawdown (%)</span>
-                <input type="number" min="1" step="0.5" value={maxDailyDrawdownPct} onChange={(event) => setMaxDailyDrawdownPct(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Max correlated exposure (%)</span>
-                <input type="number" min="50" step="10" value={maxCorrelatedExposurePct} onChange={(event) => setMaxCorrelatedExposurePct(event.target.value)} />
-              </label>
+            <div className="contextChip">
+              <span>Wallet</span>
+              <strong>{formatUsd(resolvedWalletBalance)}</strong>
             </div>
+            <div className="contextChip">
+              <span>Today&apos;s PnL</span>
+              <strong>{formatUsd(resolvedDailyPnl)}</strong>
+            </div>
+          </div>
 
-            <label className="toggleRow">
-              <input type="checkbox" checked={requireStopLoss} onChange={(event) => setRequireStopLoss(event.target.checked)} />
-              <span>Require a stop-loss before any Futures order is allowed through</span>
+          <div className="tradeGrid">
+            <label className="field">
+              <span>Symbol</span>
+              <select
+                value={symbol}
+                onChange={(event) => {
+                  setActiveScenarioId(null);
+                  setSymbol(event.target.value as SymbolCode);
+                }}
+              >
+                {SYMBOL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
-          </article>
 
-          <article className="workbenchCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Planned trade</h3>
-                <p className="muted">Use this as the core demo interaction.</p>
+            <div className="field">
+              <span>Direction</span>
+              <div className="segmentedControl" role="group" aria-label="Direction">
+                <button
+                  type="button"
+                  className={`segmentButton ${side === "long" ? "isActive" : ""}`}
+                  onClick={() => {
+                    setActiveScenarioId(null);
+                    setSide("long");
+                  }}
+                >
+                  Long
+                </button>
+                <button
+                  type="button"
+                  className={`segmentButton ${side === "short" ? "isActive" : ""}`}
+                  onClick={() => {
+                    setActiveScenarioId(null);
+                    setSide("short");
+                  }}
+                >
+                  Short
+                </button>
               </div>
             </div>
 
-            <div className="fieldGrid">
-              <label className="field">
-                <span>Symbol</span>
-                <select value={symbol} onChange={(event) => setSymbol(event.target.value as SymbolCode)}>
-                  {SYMBOL_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>Direction</span>
-                <select value={side} onChange={(event) => setSide(event.target.value as Side)}>
-                  <option value="long">Long</option>
-                  <option value="short">Short</option>
-                </select>
-              </label>
-              <label className="field">
-                <span>Entry price</span>
-                <input type="number" min="0.0001" step="0.0001" value={entryPrice} onChange={(event) => setEntryPrice(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Notional size (USD)</span>
-                <input type="number" min="50" step="50" value={positionNotionalUsd} onChange={(event) => setPositionNotionalUsd(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Leverage</span>
-                <input type="number" min="1" step="0.5" value={leverage} onChange={(event) => setLeverage(event.target.value)} />
-              </label>
-              <label className="field">
-                <span>Stop-loss price</span>
-                <input type="number" min="0" step="0.0001" value={stopLossPrice} onChange={(event) => setStopLossPrice(event.target.value)} />
-              </label>
-              <label className="field fieldWide">
-                <span>BTC shock scenario (%)</span>
-                <input type="range" min="-8" max="-1" step="0.5" value={baseShockPct} onChange={(event) => setBaseShockPct(event.target.value)} />
-                <div className="rangeMeta">
-                  <span>Stress move</span>
-                  <strong>{baseShockPct}% BTC</strong>
-                </div>
-              </label>
-            </div>
-          </article>
+            <label className="field">
+              <span>Entry price</span>
+              <input
+                type="number"
+                min="0.0001"
+                step="0.0001"
+                value={entryPrice}
+                onChange={(event) => {
+                  setActiveScenarioId(null);
+                  setEntryPrice(event.target.value);
+                }}
+              />
+            </label>
 
-          <article className="workbenchCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Live portfolio snapshot</h3>
-                <p className="muted">These preset positions are what make the correlation guard visible in a short demo.</p>
-              </div>
-            </div>
+            <label className="field">
+              <span>Notional size (USD)</span>
+              <input
+                type="number"
+                min="50"
+                step="50"
+                value={positionNotionalUsd}
+                onChange={(event) => {
+                  setActiveScenarioId(null);
+                  setPositionNotionalUsd(event.target.value);
+                }}
+              />
+            </label>
 
-            <div className="positionList">
-              {preset.positions.length === 0 ? (
-                <p className="muted">Flat account. Exposure Guard will stay quiet unless you add correlated positions later.</p>
-              ) : (
-                preset.positions.map((position) => (
-                  <div key={`${position.symbol}-${position.side}`} className="positionRow">
-                    <div>
-                      <strong>{position.symbol}</strong>
-                      <span>{position.side}</span>
+            <label className="field">
+              <span>Leverage</span>
+              <input
+                type="number"
+                min="1"
+                step="0.5"
+                value={leverage}
+                onChange={(event) => {
+                  setActiveScenarioId(null);
+                  setLeverage(event.target.value);
+                }}
+              />
+            </label>
+
+            <label className="field">
+              <span>Stop-loss (optional)</span>
+              <input
+                type="number"
+                min="0"
+                step="0.0001"
+                value={stopLossPrice}
+                onChange={(event) => {
+                  setActiveScenarioId(null);
+                  setStopLossPrice(event.target.value);
+                }}
+              />
+            </label>
+          </div>
+
+          <button type="submit" className="buttonPrimary reviewTradeButton">
+            Review this trade
+          </button>
+
+          <details className="detailsCard">
+            <summary className="detailsSummary">
+              <span>Advanced settings</span>
+              <span>Policy, wallet context, and stress assumptions</span>
+            </summary>
+
+            <div className="detailsBody">
+              <div className="advancedGrid">
+                <article className="miniPanel">
+                  <div className="miniPanelHeader">
+                    <strong>Account context</strong>
+                    <span>Used to calculate drawdown and exposure.</span>
+                  </div>
+                  <div className="miniFieldGrid">
+                    <label className="field">
+                      <span>Portfolio profile</span>
+                      <select
+                        value={presetId}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setPresetId(event.target.value as PortfolioPresetId);
+                        }}
+                      >
+                        {Object.entries(PORTFOLIO_PRESETS).map(([value, item]) => (
+                          <option key={value} value={value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field">
+                      <span>Wallet balance (USD)</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="100"
+                        value={walletBalanceUsd}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setWalletBalanceUsd(event.target.value);
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Today&apos;s realized PnL (USD)</span>
+                      <input
+                        type="number"
+                        step="10"
+                        value={dailyPnlUsd}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setDailyPnlUsd(event.target.value);
+                        }}
+                      />
+                    </label>
+                  </div>
+                </article>
+
+                <article className="miniPanel">
+                  <div className="miniPanelHeader">
+                    <strong>Risk policy</strong>
+                    <span>These guardrails decide whether the trade goes through.</span>
+                  </div>
+                  <div className="miniFieldGrid">
+                    <label className="field">
+                      <span>Max leverage</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.5"
+                        value={maxLeverage}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setMaxLeverage(event.target.value);
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Max risk / trade (%)</span>
+                      <input
+                        type="number"
+                        min="0.25"
+                        step="0.25"
+                        value={maxRiskPerTradePct}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setMaxRiskPerTradePct(event.target.value);
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Max daily drawdown (%)</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.5"
+                        value={maxDailyDrawdownPct}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setMaxDailyDrawdownPct(event.target.value);
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Max correlated exposure (%)</span>
+                      <input
+                        type="number"
+                        min="50"
+                        step="10"
+                        value={maxCorrelatedExposurePct}
+                        onChange={(event) => {
+                          setActiveScenarioId(null);
+                          setMaxCorrelatedExposurePct(event.target.value);
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <label className="toggleRow">
+                    <input
+                      type="checkbox"
+                      checked={requireStopLoss}
+                      onChange={(event) => {
+                        setActiveScenarioId(null);
+                        setRequireStopLoss(event.target.checked);
+                      }}
+                    />
+                    <span>Require a stop-loss before any Futures order is allowed through.</span>
+                  </label>
+                </article>
+
+                <article className="miniPanel">
+                  <div className="miniPanelHeader">
+                    <strong>Shock test</strong>
+                    <span>Keep this hidden for judges unless you want the deeper story.</span>
+                  </div>
+                  <label className="field">
+                    <span>BTC stress move (%)</span>
+                    <input
+                      type="range"
+                      min="-8"
+                      max="-1"
+                      step="0.5"
+                      value={baseShockPct}
+                      onChange={(event) => {
+                        setActiveScenarioId(null);
+                        setBaseShockPct(event.target.value);
+                      }}
+                    />
+                    <div className="rangeMeta">
+                      <span>Stress assumption</span>
+                      <strong>{baseShockPct}% BTC</strong>
                     </div>
+                  </label>
+                </article>
+              </div>
+            </div>
+          </details>
+        </form>
+      </section>
+
+      {hasReviewed ? (
+        <>
+          <section className="flowSection verdictStage" id="risk-verdict" ref={verdictSectionRef}>
+            <div className="sectionIntro">
+              <span className="sectionStep">Step 2</span>
+              <div>
+                <h3>Risk verdict</h3>
+                <p>The verdict is the main event: should this trade go through, be tightened, or be rejected?</p>
+              </div>
+            </div>
+
+            <article className={`verdictCard verdictCard-${analysis.status}`}>
+              <div className="verdictTopbar">
+                <div>
+                  <p className="verdictEyebrow">OpenClaw assistant review</p>
+                  <div className="verdictTitleRow">
+                    <span className={`verdictSymbol verdictSymbol-${analysis.status}`}>{verdictSymbol(analysis.status)}</span>
                     <div>
-                      <strong>{formatUsd(position.notionalUsd)}</strong>
-                      <span>{position.leverage}x</span>
+                      <h2>{verdictHeading(analysis.status)}</h2>
+                      <p className="verdictPrompt">
+                        Reviewing {resolvedTrade.side} {resolvedTrade.symbol} at {formatUsd(resolvedTrade.entryPrice)} with{" "}
+                        {formatUsd(resolvedTrade.positionNotionalUsd)} notional and {resolvedTrade.leverage}x leverage.
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </article>
-        </div>
-
-        <div className="workbenchColumn">
-          <article className="workbenchCard emphasisCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Assistant review</h3>
-                <p className="muted">This is the assistant-first moment the user sees before the order is allowed through.</p>
-              </div>
-            </div>
-
-            <div className="chatThread">
-              <div className="chatBubble chatBubble-user">
-                <span className="chatMeta">Trader</span>
-                <p>{userPrompt}</p>
-              </div>
-
-              <div className="chatBubble chatBubble-assistant">
-                <div className="chatBubbleTop">
-                  <span className="chatMeta">OpenClaw</span>
-                  <span className={`verdictChip verdictChip-${analysis.status}`}>{verdictLabel}</span>
                 </div>
-                <strong className="assistantHeadline">{assistantHeadline(analysis.status)}</strong>
-                <p className="assistantSummary">{analysis.summary}</p>
+                <div className="verdictScoreBlock">
+                  <span className={`riskStatus riskStatus-${analysis.status}`}>{statusLabel(analysis.status)}</span>
+                  <div className="scoreDisplay">
+                    <strong style={{ color: scoreTone(analysis.score) }}>{analysis.score}</strong>
+                    <span>/ 100</span>
+                  </div>
+                </div>
+              </div>
 
-                <ul className="assistantChecklist">
-                  <li>Projected max loss is {formatUsd(analysis.proposedRiskUsd)} on a {formatUsd(resolvedWalletBalance)} wallet.</li>
-                  <li>Same-bucket exposure reaches {formatPct(analysis.portfolioExposurePct)} if this trade is added.</li>
-                  <li>
-                    {analysis.shockBreachesLiquidation
-                      ? `The ${resolvedTrade.baseShockPct}% BTC shock threatens liquidation on this setup.`
-                      : `The ${resolvedTrade.baseShockPct}% BTC shock leaves post-shock equity at ${formatUsd(analysis.postShockEquityUsd)}.`}
-                  </li>
+              <div className="verdictMainGrid">
+                <div className="verdictNarrative">
+                  <strong className="assistantHeadline">{assistantHeadline(analysis.status)}</strong>
+                  <p className="assistantSummary">{analysis.summary}</p>
+                </div>
+
+                <div className="verdictReasonCard">
+                  <span className="summaryLabel">Top reasons</span>
+                  <ul className="reasonList">
+                    {visibleReasons.map((finding) => (
+                      <li key={`${finding.title}-${finding.level}`} className={`reasonItem reasonItem-${finding.level}`}>
+                        <strong>{finding.title}</strong>
+                        <span>{finding.detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="verdictMetrics">
+                <div className="metricTile">
+                  <span>Max loss</span>
+                  <strong>{formatUsd(analysis.proposedRiskUsd)}</strong>
+                </div>
+                <div className="metricTile">
+                  <span>Drawdown used</span>
+                  <strong>{formatPct(drawdownAfterTradePct)}</strong>
+                </div>
+                <div className="metricTile">
+                  <span>Correlated exposure</span>
+                  <strong>{formatPct(analysis.portfolioExposurePct)}</strong>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section className="flowSection saferStage">
+            <div className="sectionIntro">
+              <span className="sectionStep">Step 3</span>
+              <div>
+                <h3>{setupHeading(analysis.status)}</h3>
+                <p>This is the actual product value: the copilot suggests the safer version of the trade instead of only blocking it.</p>
+              </div>
+            </div>
+
+            <article className="saferSetupCard">
+              <div className="saferSetupHighlight">
+                <div className="saferSetupHeader">
+                  <span className="eyebrow">Recommended revision</span>
+                  <p>{analysis.status === "safe" ? "This setup already fits policy. These are the approved parameters." : "Use this setup if you want the trade to fit the current guardrails."}</p>
+                </div>
+
+                <div className="saferSetupGrid">
+                  <div className="setupMetric">
+                    <span>Recommended leverage</span>
+                    <strong>{analysis.saferSetup.leverage}x</strong>
+                  </div>
+                  <div className="setupMetric">
+                    <span>Recommended notional</span>
+                    <strong>{formatUsd(analysis.saferSetup.positionNotionalUsd)}</strong>
+                  </div>
+                  <div className="setupMetric">
+                    <span>Recommended stop-loss</span>
+                    <strong>{formatUsd(analysis.saferSetup.stopLossPrice)}</strong>
+                  </div>
+                  <div className="setupMetric">
+                    <span>Max loss</span>
+                    <strong>{formatUsd(analysis.saferSetup.maxLossUsd)}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="actionPanel">
+                <span className="summaryLabel">Recommended actions</span>
+                <ul className="recommendationList">
+                  {recommendationPreview.map((recommendation) => (
+                    <li key={recommendation}>{recommendation}</li>
+                  ))}
                 </ul>
+              </div>
+            </article>
 
-                <div className="chatTagRow">
-                  {visibleTags.map((finding) => (
-                    <span key={`${finding.title}-${finding.level}`} className={`chatTag chatTag-${finding.level}`}>
-                      {finding.title}
-                    </span>
-                  ))}
+            <details className="detailsCard">
+              <summary className="detailsSummary">
+                <span>See full breakdown</span>
+                <span>Policy, positions, correlation details, shock test, and full findings</span>
+              </summary>
+
+              <div className="detailsBody">
+                <div className="breakdownGrid">
+                  <article className="miniPanel">
+                    <div className="miniPanelHeader">
+                      <strong>Account policy</strong>
+                      <span>The guardrails used for this review.</span>
+                    </div>
+                    <div className="metricGrid">
+                      <div className="metricTile">
+                        <span>Max leverage</span>
+                        <strong>{resolvedPolicy.maxLeverage}x</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Risk / trade</span>
+                        <strong>{resolvedPolicy.maxRiskPerTradePct}%</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Daily drawdown</span>
+                        <strong>{resolvedPolicy.maxDailyDrawdownPct}%</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Correlated cap</span>
+                        <strong>{resolvedPolicy.maxCorrelatedExposurePct}%</strong>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="miniPanel">
+                    <div className="miniPanelHeader">
+                      <strong>Portfolio snapshot</strong>
+                      <span>These positions are what drive the exposure guard.</span>
+                    </div>
+                    <div className="positionList">
+                      {preset.positions.length === 0 ? (
+                        <p className="muted">Flat account. Correlation stays quiet unless a new book is loaded.</p>
+                      ) : (
+                        preset.positions.map((position) => (
+                          <div key={`${position.symbol}-${position.side}`} className="positionRow">
+                            <div>
+                              <strong>{position.symbol}</strong>
+                              <span>{position.side}</span>
+                            </div>
+                            <div>
+                              <strong>{formatUsd(position.notionalUsd)}</strong>
+                              <span>{position.leverage}x</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </article>
+
+                  <article className="miniPanel">
+                    <div className="miniPanelHeader">
+                      <strong>Correlation details</strong>
+                      <span>How stacked this trade becomes once it is added to the book.</span>
+                    </div>
+                    <div className="metricGrid">
+                      <div className="metricTile">
+                        <span>Projected exposure</span>
+                        <strong>{formatPct(analysis.portfolioExposurePct)}</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Preset</span>
+                        <strong>{preset.label}</strong>
+                      </div>
+                    </div>
+                  </article>
+
+                  <article className="miniPanel">
+                    <div className="miniPanelHeader">
+                      <strong>Shock test</strong>
+                      <span>A BTC-led move mapped into this symbol and the current book.</span>
+                    </div>
+                    <div className="metricGrid">
+                      <div className="metricTile">
+                        <span>Modeled move in {symbol}</span>
+                        <strong>{analysis.symbolShockPct}%</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Portfolio PnL</span>
+                        <strong>{formatUsd(analysis.portfolioShockPnlUsd)}</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Post-shock equity</span>
+                        <strong>{formatUsd(analysis.postShockEquityUsd)}</strong>
+                      </div>
+                      <div className="metricTile">
+                        <span>Liquidation buffer</span>
+                        <strong>{analysis.liquidationBufferPct}%</strong>
+                      </div>
+                    </div>
+                    <div className={`shockBanner ${analysis.shockBreachesLiquidation ? "shockBanner-danger" : "shockBanner-safe"}`}>
+                      <strong>
+                        {analysis.shockBreachesLiquidation
+                          ? "Shock test threatens liquidation."
+                          : "Shock test stays inside the liquidation buffer."}
+                      </strong>
+                      <span>Current modeled liquidation price is {formatUsd(analysis.liquidationPrice)}.</span>
+                    </div>
+                  </article>
+
+                  <article className="miniPanel breakdownWide">
+                    <div className="miniPanelHeader">
+                      <strong>Full findings list</strong>
+                      <span>The detailed guardrail-by-guardrail explanation.</span>
+                    </div>
+                    <div className="findingList">
+                      {analysis.findings.map((finding) => (
+                        <div key={`${finding.title}-${finding.level}`} className={`findingCard findingCard-${finding.level}`}>
+                          <div className="findingTop">
+                            <strong>{finding.title}</strong>
+                            <span>{finding.level}</span>
+                          </div>
+                          <p>{finding.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
                 </div>
               </div>
-            </div>
+            </details>
+          </section>
+        </>
+      ) : null}
 
-            <div className="findingList">
-              {analysis.findings.map((finding) => (
-                <div key={`${finding.title}-${finding.level}`} className={`findingCard findingCard-${finding.level}`}>
-                  <div className="findingTop">
-                    <strong>{finding.title}</strong>
-                    <span>{finding.level}</span>
-                  </div>
-                  <p>{finding.detail}</p>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="workbenchCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Safer setup</h3>
-                <p className="muted">Use this block as the “recommended revision” in the demo.</p>
-              </div>
-            </div>
-
-            <div className="summaryMiniGrid">
-              <div className="miniStat">
-                <span>Leverage</span>
-                <strong>{analysis.saferSetup.leverage}x</strong>
-              </div>
-              <div className="miniStat">
-                <span>Notional</span>
-                <strong>{formatUsd(analysis.saferSetup.positionNotionalUsd)}</strong>
-              </div>
-              <div className="miniStat">
-                <span>Stop-loss</span>
-                <strong>{formatUsd(analysis.saferSetup.stopLossPrice)}</strong>
-              </div>
-              <div className="miniStat">
-                <span>Max loss</span>
-                <strong>{formatUsd(analysis.saferSetup.maxLossUsd)}</strong>
-              </div>
-            </div>
-
-            <ul className="recommendationList">
-              {analysis.recommendations.map((recommendation) => (
-                <li key={recommendation}>{recommendation}</li>
-              ))}
-            </ul>
-          </article>
-
-          <article className="workbenchCard">
-            <div className="cardHeader">
-              <div>
-                <h3>Shock test</h3>
-                <p className="muted">A BTC-led move is mapped into this symbol and the open book.</p>
-              </div>
-            </div>
-
-            <div className="summaryMiniGrid">
-              <div className="miniStat">
-                <span>Modeled move in {symbol}</span>
-                <strong>{analysis.symbolShockPct}%</strong>
-              </div>
-              <div className="miniStat">
-                <span>Portfolio PnL</span>
-                <strong>{formatUsd(analysis.portfolioShockPnlUsd)}</strong>
-              </div>
-              <div className="miniStat">
-                <span>Post-shock equity</span>
-                <strong>{formatUsd(analysis.postShockEquityUsd)}</strong>
-              </div>
-              <div className="miniStat">
-                <span>Liquidation buffer</span>
-                <strong>{analysis.liquidationBufferPct}%</strong>
-              </div>
-            </div>
-
-            <div className={`shockBanner ${analysis.shockBreachesLiquidation ? "shockBanner-danger" : "shockBanner-safe"}`}>
-              <strong>{analysis.shockBreachesLiquidation ? "Liquidation pressure is too high." : "The trade survives the modeled shock."}</strong>
-              <span>
-                Current modeled liquidation price is {formatUsd(analysis.liquidationPrice)} for the proposed trade.
-              </span>
-            </div>
-          </article>
+      <section className="demoCallout">
+        <div>
+          <span className="sectionStep">Demo ready</span>
+          <p>Pick a scenario for instant proof, or use the form to stage your own Binance Futures trade.</p>
         </div>
-      </div>
+        {activeScenario ? <span className={`riskStatus riskStatus-${activeScenario.expectedStatus}`}>Loaded: {activeScenario.label}</span> : null}
+      </section>
     </section>
   );
 }

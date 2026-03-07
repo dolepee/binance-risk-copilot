@@ -212,6 +212,11 @@ kbd {
   gap: var(--space-1);
 }
 
+.brandBlock a {
+  display: inline-flex;
+  width: fit-content;
+}
+
 .brandBlock p {
   margin: 0;
   color: var(--text-secondary);
@@ -226,6 +231,17 @@ kbd {
   align-items: center;
   color: var(--text-secondary);
   font-size: var(--text-sm);
+}
+
+.inlineLink {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.inlineLink:hover,
+.inlineLink:focus-visible {
+  color: var(--accent);
 }
 
 .menuButton {
@@ -866,127 +882,55 @@ mark {
 
 .riskWorkbench {
   display: grid;
-  gap: var(--space-5);
+  gap: clamp(24px, 4vw, 48px);
   padding-bottom: var(--space-6);
 }
 
-.riskHero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.9fr);
-  gap: var(--space-4);
-  align-items: stretch;
-}
-
-.riskHeroCopy,
-.riskScoreCard,
-.workbenchCard,
-.summaryTile {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(165deg, color-mix(in srgb, var(--card) 94%, #0d1116 6%), color-mix(in srgb, var(--card) 78%, #0b0d12 22%));
-  box-shadow: var(--shadow-sm);
-}
-
-.riskHeroCopy {
-  padding: clamp(24px, 3vw, 36px);
-  display: grid;
-  gap: var(--space-4);
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme="dark"] .riskHeroCopy::after {
-  content: "";
-  position: absolute;
-  width: 340px;
-  height: 340px;
-  right: -160px;
-  top: -150px;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent 78%) 0%, transparent 68%);
-  pointer-events: none;
-}
-
-.eyebrow {
+.eyebrow,
+.riskStatus,
+.verdictChip,
+.sectionStep {
   width: fit-content;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent 58%);
-  background: color-mix(in srgb, var(--accent) 14%, transparent 86%);
-  color: var(--text-primary);
   font-size: 0.77rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-.leadText {
-  margin: 0;
-  max-width: 58ch;
-  color: var(--text-secondary);
-  font-size: clamp(1rem, 1.5vw, 1.08rem);
+.eyebrow {
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent 58%);
+  background: color-mix(in srgb, var(--accent) 14%, transparent 86%);
+  color: var(--text-primary);
 }
 
-.heroBulletGrid,
-.riskSummaryGrid,
-.summaryMiniGrid {
-  display: grid;
-  gap: var(--space-3);
+.sectionStep,
+.summaryLabel,
+.metricTile span,
+.contextChip span,
+.verdictEyebrow,
+.heroKicker,
+.setupMetric span,
+.findingTop span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.heroBulletGrid {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.heroBullet {
-  padding: var(--space-4);
+.sectionStep {
+  padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-soft) 88%, #11151b 12%);
-  display: grid;
-  gap: 6px;
-}
-
-.heroBullet strong,
-.summaryTile strong,
-.miniStat strong,
-.positionRow strong {
-  font-size: 1rem;
-}
-
-.heroBullet span,
-.summaryTile p,
-.assistantSummary,
-.findingCard p,
-.positionRow span,
-.recommendationList,
-.shockBanner span,
-.rangeMeta,
-.toggleRow span {
-  color: var(--text-secondary);
-}
-
-.riskScoreCard {
-  padding: var(--space-5);
-  display: grid;
-  align-content: start;
-  gap: var(--space-3);
+  background: color-mix(in srgb, var(--surface-soft) 90%, #10141a 10%);
 }
 
 .riskStatus,
 .verdictChip {
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
   padding: 7px 12px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   border: 1px solid transparent;
 }
 
@@ -1011,104 +955,263 @@ mark {
   border-color: color-mix(in srgb, var(--bad) 40%, transparent 60%);
 }
 
-.scoreDial {
-  width: min(220px, 100%);
-  aspect-ratio: 1;
-  padding: 14px;
-  border-radius: 50%;
+.heroStage {
+  min-height: calc(100vh - 160px);
   display: grid;
-  place-items: center;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, white 8%, transparent 92%),
-    0 20px 45px color-mix(in srgb, var(--accent) 10%, transparent 90%);
+  align-items: center;
 }
 
-.scoreDialInner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--card) 92%, black 8%);
+.heroPanel,
+.storyNote,
+.tradeCard,
+.verdictCard,
+.saferSetupCard,
+.detailsCard,
+.demoCallout {
   border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--card) 94%, #0d1116 6%), color-mix(in srgb, var(--card) 78%, #0b0d12 22%));
+  box-shadow: var(--shadow-sm);
+}
+
+.heroPanel {
+  padding: clamp(28px, 5vw, 56px);
   display: grid;
-  place-items: center;
+  gap: clamp(24px, 4vw, 40px);
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.scoreNumber {
-  display: block;
-  font-size: clamp(2rem, 6vw, 3.2rem);
-  font-weight: 800;
-  line-height: 1;
+[data-theme="dark"] .heroPanel::before {
+  content: "";
+  position: absolute;
+  inset: auto -120px -160px auto;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent 82%) 0%, transparent 70%);
+  pointer-events: none;
 }
 
-.scoreLabel,
-.summaryLabel {
-  font-size: 0.78rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.riskSummaryGrid {
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-}
-
-.summaryTile {
-  padding: var(--space-4);
+.heroCopy {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
+  justify-items: center;
+  max-width: 780px;
+  margin: 0 auto;
 }
 
-.summaryTile p {
+.heroKicker,
+.verdictEyebrow {
   margin: 0;
-  font-size: var(--text-sm);
 }
 
-.workbenchGrid {
+.heroPanel h2 {
+  font-size: clamp(2.25rem, 6vw, 4.6rem);
+  line-height: 0.98;
+  max-width: 11ch;
+  margin: 0 auto;
+}
+
+.heroLead {
+  margin: 0 auto;
+  max-width: 60ch;
+  color: var(--text-secondary);
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+}
+
+.heroActions {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-  gap: var(--space-4);
+  gap: var(--space-2);
+  justify-items: center;
 }
 
-.workbenchColumn {
-  display: grid;
-  gap: var(--space-4);
-  align-content: start;
+.heroPrimaryAction {
+  min-width: 220px;
+  padding: 14px 20px;
+  font-weight: 700;
 }
 
-.workbenchCard {
-  padding: var(--space-4);
+.heroHelper {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--text-secondary);
+}
+
+.heroScenarioBlock {
+  max-width: 980px;
+  margin: 0 auto;
   display: grid;
   gap: var(--space-3);
 }
 
-.scenarioPanel {
-  margin-top: calc(var(--space-2) * -1);
+.heroScenarioHeader {
+  display: grid;
+  gap: 4px;
+  text-align: left;
 }
 
-.emphasisCard {
+.heroScenarioHeader span,
+.heroScenarioButton span:last-child,
+.sectionIntro p,
+.detailsSummary span:last-child,
+.miniPanelHeader span,
+.assistantSummary,
+.reasonItem span,
+.recommendationList,
+.positionRow span,
+.shockBanner span,
+.demoCallout p,
+.rangeMeta,
+.toggleRow span {
+  color: var(--text-secondary);
+}
+
+.heroScenarioGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.heroScenarioButton {
+  text-align: left;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-soft) 90%, #10141a 10%);
+  display: grid;
+  gap: 10px;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.heroScenarioButton:hover,
+.heroScenarioButton:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border) 58%);
+  transform: translateY(-1px);
+}
+
+.heroScenarioButton.isActive {
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
   box-shadow:
-    var(--shadow-md),
-    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent 78%);
+    0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent 76%),
+    0 18px 34px color-mix(in srgb, var(--accent) 10%, transparent 90%);
 }
 
-.cardHeader {
+.heroScenarioButton strong,
+.contextChip strong,
+.metricTile strong,
+.setupMetric strong,
+.positionRow strong,
+.findingCard strong {
+  font-size: 1rem;
+}
+
+.heroScenarioNote {
+  margin: 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.storyNote {
+  padding: clamp(20px, 3vw, 28px);
+  display: grid;
+  gap: 12px;
+}
+
+.storyNote p {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--text-secondary);
+  font-size: clamp(1rem, 1.5vw, 1.08rem);
+}
+
+.flowSection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.sectionIntro {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
-.cardHeader p,
-.assistantSummary,
-.findingCard p {
-  margin: 0;
+.sectionIntro p {
+  margin: 8px 0 0;
+  max-width: 64ch;
 }
 
-.fieldGrid {
+.tradeCard,
+.verdictCard,
+.saferSetupCard {
+  padding: clamp(22px, 4vw, 36px);
+}
+
+.tradeCard {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.tradeContextStrip,
+.verdictMetrics,
+.metricGrid,
+.saferSetupGrid {
+  display: grid;
   gap: var(--space-3);
+}
+
+.tradeContextStrip {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contextChip,
+.metricTile,
+.setupMetric,
+.reasonItem,
+.positionRow,
+.findingCard {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-soft) 88%, #11151b 12%);
+}
+
+.contextChip,
+.metricTile,
+.setupMetric,
+.positionRow {
+  display: grid;
+  gap: 6px;
+}
+
+.tradeGrid,
+.advancedGrid,
+.breakdownGrid,
+.miniFieldGrid,
+.verdictMainGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.tradeGrid,
+.miniFieldGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.advancedGrid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.breakdownGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.breakdownWide {
+  grid-column: 1 / -1;
 }
 
 .field {
@@ -1118,43 +1221,98 @@ mark {
   font-size: var(--text-sm);
 }
 
-.scenarioGrid {
+.segmentedControl {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.segmentButton {
+  padding: 11px 14px;
+  background: var(--surface-control);
+  color: var(--text-secondary);
+}
+
+.segmentButton.isActive {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--border) 38%);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-control) 86%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent 76%) inset;
+}
+
+.reviewTradeButton {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.detailsCard {
+  overflow: hidden;
+}
+
+.detailsSummary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  padding: 18px 20px;
+}
+
+.detailsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.detailsSummary span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detailsSummary span:first-child::before {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.detailsCard[open] .detailsSummary span:first-child::before {
+  content: "-";
+}
+
+.detailsSummary span:last-child {
+  max-width: 52ch;
+  text-align: right;
+  font-size: var(--text-sm);
+}
+
+.detailsBody {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+  display: grid;
   gap: var(--space-3);
 }
 
-.scenarioButton {
-  text-align: left;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
+.miniPanel {
+  padding: 18px;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-soft) 90%, #10141a 10%);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-soft) 88%, #10141a 12%);
   display: grid;
-  gap: 10px;
-  transition: 160ms ease;
+  gap: var(--space-3);
 }
 
-.scenarioButton:hover,
-.scenarioButton:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--border) 58%);
-  transform: translateY(-1px);
-}
-
-.scenarioButton.isActive {
-  border-color: color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent 72%),
-    0 16px 32px color-mix(in srgb, var(--accent) 10%, transparent 90%);
-}
-
-.scenarioButton span:last-child {
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.fieldWide {
-  grid-column: 1 / -1;
+.miniPanelHeader {
+  display: grid;
+  gap: 4px;
 }
 
 .rangeMeta,
@@ -1173,7 +1331,7 @@ mark {
 
 .toggleRow {
   align-items: center;
-  padding: var(--space-3);
+  padding: 14px 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-soft) 86%, #11151b 14%);
@@ -1185,132 +1343,237 @@ mark {
   margin: 0;
 }
 
-.positionList,
-.findingList,
-.recommendationList {
+.verdictCard {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  animation: verdictReveal 360ms ease-out;
 }
 
-.positionRow {
-  align-items: center;
-  padding: 12px 14px;
+.verdictCard-safe {
+  border-color: color-mix(in srgb, var(--ok) 34%, var(--border) 66%);
+}
+
+.verdictCard-caution {
+  border-color: color-mix(in srgb, var(--warn) 34%, var(--border) 66%);
+}
+
+.verdictCard-danger {
+  border-color: color-mix(in srgb, var(--bad) 34%, var(--border) 66%);
+}
+
+.verdictTopbar {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.verdictTitleRow {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.verdictTitleRow h2 {
+  font-size: clamp(1.6rem, 3vw, 2.8rem);
+}
+
+.verdictPrompt {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  max-width: 64ch;
+}
+
+.verdictSymbol {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.verdictSymbol-safe {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 14%, transparent 86%);
+  border-color: color-mix(in srgb, var(--ok) 34%, transparent 66%);
+}
+
+.verdictSymbol-caution {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 14%, transparent 86%);
+  border-color: color-mix(in srgb, var(--warn) 34%, transparent 66%);
+}
+
+.verdictSymbol-danger {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 14%, transparent 86%);
+  border-color: color-mix(in srgb, var(--bad) 34%, transparent 66%);
+}
+
+.verdictScoreBlock {
+  display: grid;
+  gap: 12px;
+  justify-items: end;
+}
+
+.scoreDisplay {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.scoreDisplay strong {
+  font-size: clamp(3.2rem, 8vw, 4.6rem);
+  line-height: 0.88;
+}
+
+.scoreDisplay span {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  padding-bottom: 10px;
+}
+
+.verdictMainGrid {
+  grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
+  align-items: start;
+}
+
+.verdictNarrative,
+.verdictReasonCard {
+  padding: 20px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-soft) 90%, #11151a 10%);
+  background: color-mix(in srgb, var(--surface-soft) 90%, #10141a 10%);
+  display: grid;
+  gap: 12px;
 }
 
-.positionRow div,
-.miniStat {
-  display: grid;
-  gap: 4px;
+.assistantHeadline {
+  font-size: 1.08rem;
+}
+
+.assistantSummary,
+.findingCard p {
+  margin: 0;
 }
 
 .assistantSummary {
-  font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-.chatThread {
-  display: grid;
-  gap: var(--space-3);
-}
-
-.chatBubble {
-  padding: var(--space-3);
-  border-radius: 18px;
-  border: 1px solid var(--border);
+.reasonList,
+.positionList,
+.findingList,
+.recommendationList {
+  margin: 0;
   display: grid;
   gap: 10px;
 }
 
-.chatBubble p,
-.assistantChecklist {
-  margin: 0;
+.reasonList {
+  list-style: none;
+  padding: 0;
 }
 
-.chatBubble-user {
-  justify-self: end;
-  width: min(92%, 520px);
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface-soft) 84%);
-  border-color: color-mix(in srgb, var(--accent) 36%, var(--border) 64%);
+.reasonItem {
+  gap: 4px;
 }
 
-.chatBubble-assistant {
-  width: min(100%, 720px);
-  background: color-mix(in srgb, var(--surface-soft) 92%, #10141b 8%);
+.reasonItem span {
+  font-size: var(--text-sm);
+  line-height: 1.55;
 }
 
-.chatBubbleTop,
-.chatTagRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+.reasonItem-good {
+  border-color: color-mix(in srgb, var(--ok) 28%, var(--border) 72%);
+  background: color-mix(in srgb, var(--ok) 10%, var(--surface-soft) 90%);
 }
 
-.chatMeta {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+.reasonItem-caution {
+  border-color: color-mix(in srgb, var(--warn) 28%, var(--border) 72%);
+  background: color-mix(in srgb, var(--warn) 10%, var(--surface-soft) 90%);
 }
 
-.assistantHeadline {
-  font-size: 1rem;
+.reasonItem-danger {
+  border-color: color-mix(in srgb, var(--bad) 28%, var(--border) 72%);
+  background: color-mix(in srgb, var(--bad) 10%, var(--surface-soft) 90%);
 }
 
-.assistantChecklist {
-  padding-left: 18px;
+.verdictMetrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metricGrid,
+.saferSetupGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.saferSetupCard {
   display: grid;
-  gap: 8px;
+  gap: var(--space-4);
+}
+
+.saferSetupHighlight {
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 10%, var(--surface-soft) 90%), color-mix(in srgb, var(--accent) 6%, var(--card) 94%));
+  display: grid;
+  gap: var(--space-4);
+}
+
+.saferSetupHeader {
+  display: grid;
+  gap: 10px;
+}
+
+.saferSetupHeader p {
+  margin: 0;
+  max-width: 62ch;
   color: var(--text-secondary);
 }
 
-.chatTagRow {
-  justify-content: flex-start;
+.saferSetupGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.chatTag {
-  display: inline-flex;
+.setupMetric {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-soft) 90%);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border) 62%);
+}
+
+.actionPanel {
+  display: grid;
+  gap: 12px;
+}
+
+.recommendationList {
+  padding-left: 18px;
+  color: var(--text-secondary);
+}
+
+.positionList,
+.findingList {
+  padding: 0;
+}
+
+.positionRow {
   align-items: center;
-  padding: 5px 10px;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  border: 1px solid transparent;
-}
-
-.chatTag-good {
-  color: var(--ok);
-  background: color-mix(in srgb, var(--ok) 14%, transparent 86%);
-  border-color: color-mix(in srgb, var(--ok) 35%, transparent 65%);
-}
-
-.chatTag-caution {
-  color: var(--warn);
-  background: color-mix(in srgb, var(--warn) 14%, transparent 86%);
-  border-color: color-mix(in srgb, var(--warn) 35%, transparent 65%);
-}
-
-.chatTag-danger {
-  color: var(--bad);
-  background: color-mix(in srgb, var(--bad) 14%, transparent 86%);
-  border-color: color-mix(in srgb, var(--bad) 35%, transparent 65%);
 }
 
 .findingCard {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
   display: grid;
   gap: 8px;
 }
 
 .findingTop span {
   font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 .findingCard-good {
@@ -1328,24 +1591,8 @@ mark {
   border-color: color-mix(in srgb, var(--bad) 28%, var(--border) 72%);
 }
 
-.summaryMiniGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.miniStat {
-  padding: 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-soft) 88%, #11151b 12%);
-}
-
-.recommendationList {
-  margin: 0;
-  padding-left: 18px;
-}
-
 .shockBanner {
-  padding: var(--space-3);
+  padding: 14px 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   display: grid;
@@ -1360,6 +1607,29 @@ mark {
 .shockBanner-danger {
   background: color-mix(in srgb, var(--bad) 10%, var(--surface-soft) 90%);
   border-color: color-mix(in srgb, var(--bad) 28%, var(--border) 72%);
+}
+
+.demoCallout {
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.demoCallout p {
+  margin: 8px 0 0;
+}
+
+@keyframes verdictReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .demoPage {
@@ -1399,30 +1669,79 @@ mark {
 }
 
 @media (max-width: 1040px) {
-  .riskHero,
-  .workbenchGrid {
+  .heroScenarioGrid,
+  .tradeContextStrip,
+  .verdictMetrics,
+  .saferSetupGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .verdictMainGrid,
+  .breakdownGrid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 700px) {
-  .riskHeroCopy,
-  .riskScoreCard,
-  .workbenchCard,
+@media (max-width: 760px) {
+  .heroStage {
+    min-height: auto;
+  }
+
+  .heroPanel,
+  .tradeCard,
+  .verdictCard,
+  .saferSetupCard,
   .demoHero {
     padding: var(--space-4);
   }
 
-  .fieldGrid,
-  .summaryMiniGrid {
+  .heroPanel,
+  .heroCopy {
+    text-align: left;
+    justify-items: start;
+  }
+
+  .heroPanel h2,
+  .heroLead {
+    margin-left: 0;
+    max-width: none;
+  }
+
+  .heroActions {
+    justify-items: stretch;
+  }
+
+  .heroPrimaryAction {
+    width: 100%;
+  }
+
+  .heroScenarioGrid,
+  .tradeContextStrip,
+  .tradeGrid,
+  .miniFieldGrid,
+  .advancedGrid,
+  .verdictMetrics,
+  .metricGrid,
+  .saferSetupGrid {
     grid-template-columns: 1fr;
   }
 
-  .cardHeader,
+  .sectionIntro,
+  .detailsSummary,
+  .verdictTopbar,
   .toggleRow,
   .positionRow,
-  .findingTop {
+  .findingTop,
+  .demoCallout {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .detailsSummary span:last-child {
+    text-align: left;
+  }
+
+  .verdictScoreBlock {
+    justify-items: start;
   }
 }
