@@ -1,0 +1,17 @@
+[Unit]
+Description=Binance Risk Copilot (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/binance-risk-copilot
+Environment=NODE_ENV=production
+Environment=PORT=3002
+Environment=NEXT_PUBLIC_BASE_PATH=/binance-risk-copilot
+ExecStart=/usr/bin/npm run start -- --port 3002
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

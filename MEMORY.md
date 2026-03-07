@@ -7,6 +7,8 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Main routes:
   - `/` workbench
   - `/demo` recording notes / judge script
+- Public URL:
+  - `http://16.16.120.1/binance-risk-copilot`
 - Local build status:
   - `npm run lint` passes
   - `npm run build` passes
@@ -37,6 +39,7 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Work was moved into `/home/qdee/binance-risk-copilot` so `/home/qdee/openclaw-mission-control` stays untouched.
 - Old Mission Control page routes and stale API routes were removed from the isolated app surface.
 - Public GitHub repo: `https://github.com/dolepee/binance-risk-copilot`
+- Deployed publicly under the existing VPS at `/binance-risk-copilot`, backed by a separate `binance-risk-copilot.service` on port `3002`.
 - The current scenario calibration is:
   - `safe` -> score `90`
   - `caution` -> score `59`

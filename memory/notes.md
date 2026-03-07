@@ -11,3 +11,4 @@
 - Removed stale Mission Control routes and unused API endpoints from the isolated app surface.
 - Verified the app with `npm run lint` and `npm run build`; both pass.
 - Published the repo to `https://github.com/dolepee/binance-risk-copilot` via the authenticated OpenClaw VPS GitHub session.
+- Deployed the app publicly to `http://16.16.120.1/binance-risk-copilot` using Nginx path proxying to a separate `binance-risk-copilot` Next.js service on port `3002`.
