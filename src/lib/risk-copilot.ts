@@ -192,15 +192,15 @@ function statusFromScore(score: number): "safe" | "caution" | "danger" {
 function buildSummary(status: "safe" | "caution" | "danger", findings: RiskFinding[]): string {
   const keyFinding = findings.find((finding) => finding.level !== "good");
   if (status === "safe") {
-    return "This setup is within policy and the downside looks contained. The assistant would let it through with a short explanation.";
+    return "Within policy. Downside looks contained and the assistant would let it through.";
   }
   if (status === "caution") {
     return keyFinding
-      ? `This trade is tradable, but only after tightening the setup. The main issue is ${keyFinding.title.toLowerCase()}.`
-      : "This trade needs adjustment before it should be placed.";
+      ? `Tradeable, but tighten it first. Main issue: ${keyFinding.title.toLowerCase()}.`
+      : "Tradeable, but it needs tightening first.";
   }
   return keyFinding
-    ? `This trade is too aggressive right now. The biggest problem is ${keyFinding.title.toLowerCase()}, and the current setup meaningfully increases blow-up risk.`
+    ? `Too aggressive right now. Biggest issue: ${keyFinding.title.toLowerCase()}.`
     : "This trade is too aggressive for the current account state.";
 }
 
@@ -262,7 +262,7 @@ export function analyzeTrade(account: AccountSnapshot, policy: RiskPolicy, trade
         ? "For a long trade, the stop-loss must sit below the entry."
         : "For a short trade, the stop-loss must sit above the entry.",
     });
-    recommendations.push("Fix the stop-loss placement so downside is clearly defined.");
+    recommendations.push("Fix the stop-loss so downside is clearly defined.");
   }
 
   if (riskPct != null) {
@@ -296,7 +296,7 @@ export function analyzeTrade(account: AccountSnapshot, policy: RiskPolicy, trade
       title: "Correlated exposure is too high",
       detail: `This trade pushes same-bucket exposure to ${round(sameBucketExposurePct)}% of wallet equity, above the ${round(policy.maxCorrelatedExposurePct)}% policy threshold.`,
     });
-    recommendations.push("Trim size or avoid stacking another correlated position into this portfolio.");
+    recommendations.push("Resize or avoid stacking another correlated position.");
   } else if (sameBucketExposurePct > policy.maxCorrelatedExposurePct) {
     score -= 16;
     findings.push({
@@ -319,7 +319,7 @@ export function analyzeTrade(account: AccountSnapshot, policy: RiskPolicy, trade
       title: "Daily drawdown headroom is thin",
       detail: `Current day PnL plus trade risk would push potential drawdown to ${round(drawdownAfterTradePct)}%, beyond the ${round(policy.maxDailyDrawdownPct)}% daily limit.`,
     });
-    recommendations.push("Trade smaller or wait until daily drawdown recovers.");
+    recommendations.push("Wait or resize while daily drawdown stays elevated.");
   } else if (currentDrawdownPct > policy.maxDailyDrawdownPct * 0.7) {
     score -= 8;
     findings.push({
@@ -336,7 +336,7 @@ export function analyzeTrade(account: AccountSnapshot, policy: RiskPolicy, trade
       title: "Shock test approaches liquidation",
       detail: `Under a ${round(trade.baseShockPct)}% BTC move, the modeled ${trade.symbol} move would likely breach the current liquidation buffer.`,
     });
-    recommendations.push("Lower leverage until the shock test no longer threatens liquidation.");
+    recommendations.push("Reduce leverage until the shock test clears.");
   } else if (portfolioShockPnlUsd < -(account.walletBalanceUsd * 0.08)) {
     score -= 13;
     findings.push({
@@ -371,13 +371,13 @@ export function analyzeTrade(account: AccountSnapshot, policy: RiskPolicy, trade
   const recommendedRiskUsd = recommendedNotional > 0 ? recommendedNotional * recommendedStopPct : null;
 
   if (recommendedNotional < trade.positionNotionalUsd * 0.98) {
-    recommendations.push(`Cut notional from ${round(trade.positionNotionalUsd)} USD to about ${round(recommendedNotional)} USD.`);
+    recommendations.push(`Cut notional to about ${round(recommendedNotional)} USD.`);
   }
   if (trade.stopLossPrice == null || !hasDirectionalStop(trade)) {
     recommendations.push(`Use a stop-loss near ${round(recommendedStop, trade.entryPrice > 100 ? 0 : 4)}.`);
   }
   if (recommendations.length === 0) {
-    recommendations.push("This setup is already within policy. If you place it, keep the stop-loss unchanged.");
+    recommendations.push("This setup is within policy. Keep the stop-loss unchanged.");
   }
 
   score = clamp(Math.round(score), 8, 96);

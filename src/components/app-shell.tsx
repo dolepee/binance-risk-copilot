@@ -10,6 +10,7 @@ type Props = {
 const navItems = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#hero-scenarios", label: "Try a scenario" },
+  { href: "/demo", label: "Demo notes" },
 ];
 
 export function AppShell({ children }: Props) {
@@ -44,44 +45,60 @@ export function AppShell({ children }: Props) {
             <Link href="/">
               <h1>Binance Risk Copilot</h1>
             </Link>
-            <p>OpenClaw-powered Futures risk review MVP</p>
+            <p>OpenClaw Futures risk review</p>
           </div>
-          <button
-            type="button"
-            className="themeToggle"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            Theme: {theme}
-          </button>
-          <button
-            type="button"
-            className="menuButton"
-            aria-expanded={isOpen}
-            aria-controls="main-nav"
-            aria-label="Toggle navigation menu"
-            onClick={() => setIsOpen((v) => !v)}
-          >
-            Menu
-          </button>
           <nav id="main-nav" className={`navLinks ${isOpen ? "open" : ""}`} aria-label="Primary">
             {navItems.map((item) => {
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="navLink"
+                  className={`navLink ${item.href === "/#hero-scenarios" ? "navLinkDesktopOnly" : ""}`}
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
                 </Link>
               );
             })}
+            <button
+              type="button"
+              className="navUtility mobileThemeToggle"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              onClick={() => {
+                setTheme(theme === "dark" ? "light" : "dark");
+                setIsOpen(false);
+              }}
+            >
+              Theme: {theme}
+            </button>
           </nav>
+          <div className="headerActions">
+            <Link href="/#hero-scenarios" className="quickActionLink" onClick={() => setIsOpen(false)}>
+              Try a scenario
+            </Link>
+            <button
+              type="button"
+              className="themeToggle desktopThemeToggle"
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme}
+            </button>
+            <button
+              type="button"
+              className="menuButton"
+              aria-expanded={isOpen}
+              aria-controls="main-nav"
+              aria-label="Toggle navigation menu"
+              onClick={() => setIsOpen((v) => !v)}
+            >
+              {isOpen ? "Close" : "Menu"}
+            </button>
+          </div>
         </div>
         <div className="appHeaderNote">
           <span className="badge badgeWarn">Judge-ready MVP</span>
-          <span>Three steps only: define the trade, get the verdict, use the safer setup.</span>
+          <span>Three steps: set the trade, get the verdict, use the safer setup.</span>
           <Link href="/demo" className="inlineLink">
             Demo notes
           </Link>

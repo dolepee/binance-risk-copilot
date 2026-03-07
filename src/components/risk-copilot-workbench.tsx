@@ -144,6 +144,66 @@ function breakdownToggleLabel(status: "safe" | "caution" | "danger"): string {
   return "See why this trade was flagged";
 }
 
+function curateRecommendations(
+  trade: { leverage: number; positionNotionalUsd: number },
+  analysis: RiskAnalysis,
+): string[] {
+  const source = analysis.recommendations;
+  const actions: string[] = [];
+  const leverageReduced = analysis.saferSetup.leverage < trade.leverage - 0.1;
+  const sizeReduced = analysis.saferSetup.positionNotionalUsd < trade.positionNotionalUsd - 1;
+  const wantsLeverage = source.some((item) => /reduce leverage|lower leverage/i.test(item));
+  const wantsStop = source.some((item) => /stop-loss/i.test(item));
+  const wantsResize = source.some((item) => /cut notional|trade smaller|trim size/i.test(item));
+  const wantsWait = source.some((item) => /wait/i.test(item));
+  const wantsCorrelation = source.some((item) => /correlated|stacking/i.test(item));
+
+  if (analysis.status === "safe") {
+    return ["Place as planned if the stop-loss stays unchanged."];
+  }
+
+  if (wantsLeverage || leverageReduced) {
+    actions.push(`Reduce leverage to ${analysis.saferSetup.leverage}x or lower.`);
+  }
+
+  if (wantsResize && wantsWait) {
+    actions.push(
+      sizeReduced
+        ? `Wait or resize to about ${formatUsd(analysis.saferSetup.positionNotionalUsd)} if daily drawdown stays elevated.`
+        : "Wait or resize if daily drawdown stays elevated.",
+    );
+  } else if (wantsResize || sizeReduced) {
+    actions.push(
+      sizeReduced
+        ? `Cut notional to about ${formatUsd(analysis.saferSetup.positionNotionalUsd)}.`
+        : "Resize the trade before sending it.",
+    );
+  } else if (wantsWait) {
+    actions.push("Wait or resize if daily drawdown stays elevated.");
+  }
+
+  if (wantsStop) {
+    actions.push(`Use a stop-loss near ${formatUsd(analysis.saferSetup.stopLossPrice)}.`);
+  }
+
+  if (wantsCorrelation && !actions.some((item) => /notional|resize/i.test(item))) {
+    actions.push("Avoid stacking another correlated position into this book.");
+  }
+
+  if (actions.length === 0) {
+    actions.push(
+      source[0]
+        ?.replace(/^Resize or avoid stacking another correlated position\.$/, "Avoid stacking another correlated position into this book.")
+        .replace(/^Wait or resize while daily drawdown stays elevated\.$/, "Wait or resize if daily drawdown stays elevated.")
+        .replace(/^Reduce leverage until the shock test clears\.$/, `Reduce leverage to ${analysis.saferSetup.leverage}x or lower.`)
+        .replace(/^This setup is within policy\. Keep the stop-loss unchanged\.$/, "Place as planned if the stop-loss stays unchanged.")
+        ?? "Review the safer setup before sending the order.",
+    );
+  }
+
+  return Array.from(new Set(actions)).slice(0, 2);
+}
+
 export function RiskCopilotWorkbench() {
   const tradeSectionRef = useRef<HTMLElement | null>(null);
   const verdictSectionRef = useRef<HTMLElement | null>(null);
@@ -227,7 +287,7 @@ export function RiskCopilotWorkbench() {
     ? analysis.findings.filter((finding) => finding.level !== "good")
     : analysis.findings
   ).slice(0, 3);
-  const recommendationPreview = analysis.recommendations.slice(0, 3);
+  const recommendationPreview = curateRecommendations(resolvedTrade, analysis);
   const currentDrawdownPct = Math.max(0, (-resolvedDailyPnl / resolvedWalletBalance) * 100);
   const drawdownAfterTradePct = currentDrawdownPct + (analysis.proposedRiskPct ?? 0);
   const activeScenario = DEMO_SCENARIOS.find((scenario) => scenario.id === activeScenarioId) ?? null;
@@ -285,7 +345,7 @@ export function RiskCopilotWorkbench() {
             <button type="button" className="buttonPrimary heroPrimaryAction" onClick={scrollToTrade}>
               Review a trade
             </button>
-            <p className="heroHelper">Paste a planned Binance Futures trade and get an instant risk verdict before you place it.</p>
+            <p className="heroHelper">Enter a Futures trade and get the verdict before you confirm.</p>
           </div>
 
           <div className="heroScenarioBlock" id="hero-scenarios">
@@ -298,7 +358,7 @@ export function RiskCopilotWorkbench() {
                 <button
                   key={scenario.id}
                   type="button"
-                  className={`heroScenarioButton ${activeScenarioId === scenario.id ? "isActive" : ""}`}
+                  className={`heroScenarioButton heroScenarioButton-${scenario.expectedStatus} ${activeScenarioId === scenario.id ? "isActive" : ""}`}
                   onClick={() => loadScenario(scenario)}
                 >
                   <span className={`riskStatus riskStatus-${scenario.expectedStatus}`}>{scenario.shortLabel}</span>
@@ -360,12 +420,12 @@ export function RiskCopilotWorkbench() {
 
       <section className="flowSection tradeStage" id="planned-trade" ref={tradeSectionRef}>
         <div className="sectionIntro">
-          <span className="sectionStep">Step 1</span>
-          <div>
-            <h3>Planned trade</h3>
-            <p>Enter the trade you want to place, then request a review.</p>
-          </div>
-        </div>
+              <span className="sectionStep">Step 1</span>
+              <div>
+                <h3>Planned trade</h3>
+                <p>Set the trade you want to place, then review it.</p>
+              </div>
+            </div>
 
         <form
           className="tradeCard"
@@ -663,13 +723,13 @@ export function RiskCopilotWorkbench() {
               <span className="sectionStep">Step 2</span>
               <div>
                 <h3>Risk verdict</h3>
-                <p>The verdict is the main event: should this trade go through, be tightened, or be rejected?</p>
+                <p>See whether the trade fits policy, needs tightening, or should be rejected.</p>
               </div>
             </div>
 
             <article className={`verdictCard verdictCard-${analysis.status}`}>
               <div className="verdictTopbar">
-                <div>
+                <div className="verdictLead">
                   <p className="verdictEyebrow">OpenClaw assistant review</p>
                   <div className="verdictTitleRow">
                     <span className={`verdictSymbol verdictSymbol-${analysis.status}`}>{verdictSymbol(analysis.status)}</span>
@@ -732,7 +792,7 @@ export function RiskCopilotWorkbench() {
               <span className="sectionStep">Step 3</span>
               <div>
                 <h3>{setupHeading(analysis.status)}</h3>
-                <p>This is the actual product value: the copilot suggests the safer version of the trade instead of only blocking it.</p>
+                <p>The copilot shows the safer version instead of only blocking the trade.</p>
               </div>
             </div>
 
@@ -776,7 +836,7 @@ export function RiskCopilotWorkbench() {
             <details className="detailsCard">
               <summary className="detailsSummary">
                 <span>{breakdownToggleLabel(analysis.status)}</span>
-                <span>Policy, positions, correlation details, shock test, and every guardrail used in the decision.</span>
+                <span>Policy, positions, shock test, and the guardrails behind the verdict.</span>
               </summary>
 
               <div className="detailsBody">
