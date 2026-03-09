@@ -5,15 +5,29 @@
 - Built the core workbench UI in `src/components/risk-copilot-workbench.tsx`.
 - Replaced Mission Control branding with Binance Risk Copilot in `src/components/app-shell.tsx` and `src/app/layout.tsx`.
 - Added a Binance-style visual system and workbench styles in `src/app/globals.css`.
-- Added `/demo` with a short judge / recording walkthrough in `src/app/demo/page.tsx`.
 - Upgraded the verdict panel into a chat-style OpenClaw assistant review.
 - Added one-click demo scenario buttons for `safe`, `caution`, and `danger`.
 - Refactored the homepage into a linear 3-step UX with a hero, focused trade form, dominant verdict card, highlighted safer setup, and collapsed advanced/detail sections.
-- Simplified navigation to `How it works`, `Try a scenario`, and `Demo notes`.
+- Simplified navigation to `How it works` and `Try a scenario`.
 - Removed stale Mission Control routes and unused API endpoints from the isolated app surface.
 - Verified the app with `npm run lint` and `npm run build`; both pass.
 - Published the repo to `https://github.com/dolepee/binance-risk-copilot` via the authenticated OpenClaw VPS GitHub session.
 - Added a GitHub Pages deployment path for the short public URL `https://dolepee.github.io/binance-risk-copilot/`.
 - Kept the VPS app internal on port `3002` so the raw VPS IP is not used as the public demo link.
+- Removed the public `/demo` route before submission so recording notes are not exposed on the live site.
 - Fixed verdict reveal timing after review so the page scrolls to the verdict only after it mounts.
 - Fixed the live `Review this trade` bug caused by hidden native form validation on collapsed advanced fields by adding `noValidate` and correcting the wallet balance input constraint.
+- Added a hero-level scenario verdict preview so scenario clicks immediately surface the score, verdict, and safer setup before the user scrolls.
+- Tightened vertical spacing across hero, trade, verdict, safer setup, and supporting cards to remove large empty gaps.
+- Improved verdict readability on mobile with lighter card treatment, better spacing, and clearer order of score, explanation, reasons, and supporting stats.
+- Split `Top reasons` into clearer title/body rows with more padding and line height for faster mobile scanning.
+- Rewrote safer-setup helper copy to explicitly explain whether the fix is leverage reduction, size reduction, or both.
+- Replaced the old breakdown label with state-aware CTA copy: `View full risk details` or `See why this trade was flagged`.
+- Published the final polish pass to GitHub Pages via commit `296f663` (`Polish mobile verdict flow`).
+- Applied the last 5% mobile-first polish pass and published it via commit `2ba1b3b` (`Apply final UI polish pass`).
+- Final polish highlights:
+  - simplified the mobile header and compacted secondary actions
+  - gave the verdict header and score block more emphasis
+  - curated recommended actions down to the clearest top 2
+  - shortened helper copy and tightened mobile spacing
+  - made safe / caution / danger states more visually distinct

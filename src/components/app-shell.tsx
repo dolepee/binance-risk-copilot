@@ -10,7 +10,6 @@ type Props = {
 const navItems = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#hero-scenarios", label: "Try a scenario" },
-  { href: "/demo", label: "Demo notes" },
 ];
 
 export function AppShell({ children }: Props) {
@@ -99,9 +98,6 @@ export function AppShell({ children }: Props) {
         <div className="appHeaderNote">
           <span className="badge badgeWarn">Judge-ready MVP</span>
           <span>Three steps: set the trade, get the verdict, use the safer setup.</span>
-          <Link href="/demo" className="inlineLink">
-            Demo notes
-          </Link>
         </div>
       </header>
 

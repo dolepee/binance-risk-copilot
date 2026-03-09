@@ -6,7 +6,6 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Assistant-first Binance Futures risk review demo for contest submission use.
 - Main routes:
   - `/` workbench
-  - `/demo` recording notes / judge script
 - Local build status:
   - `npm run lint` passes
   - `npm run build` passes
@@ -21,7 +20,6 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
   - liquidation buffer / safer setup output
 - Interactive workbench in `src/components/risk-copilot-workbench.tsx`
 - Binance-focused shell / branding in `src/components/app-shell.tsx`
-- Demo route in `src/app/demo/page.tsx`
 - Gold-accent Binance-style theme and workbench styling in `src/app/globals.css`
 
 ## UX Upgrades Added
@@ -38,8 +36,21 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
   - dominant verdict and safer setup
 - Collapsed policy, wallet, and shock controls behind `Advanced settings`.
 - Collapsed portfolio, correlation, shock, and full findings behind `See full breakdown`.
-- Simplified the header nav to `How it works`, `Try a scenario`, and `Demo notes`.
+- Simplified the header nav to `How it works` and `Try a scenario`.
 - Reworked the mobile layout so scenario buttons stack and the trade / verdict cards read cleanly on smaller screens.
+- Added an immediate scenario verdict preview below the hero presets so a click instantly shows score, verdict, and safer setup.
+- Tightened vertical spacing across the page to reduce dead space between hero, trade, verdict, and safer setup sections.
+- Polished the verdict card hierarchy and top-reason cards for better scanability on mobile.
+- Rewrote safer-setup helper copy so it explains whether the main fix is leverage, size, or both.
+- Renamed the advanced breakdown CTA by state:
+  - `View full risk details` for safe reviews
+  - `See why this trade was flagged` for caution / danger reviews
+- Applied a final mobile-first polish pass:
+  - simplified the header into brand + one quick action + compact menu on small screens
+  - gave the verdict header and score block more breathing room
+  - reduced recommended actions to the clearest top 2
+  - shortened helper copy and tightened mobile spacing
+  - made safe / caution / danger states more visually distinct
 
 ## Post-Launch Fixes
 - Fixed verdict reveal timing so the page scrolls only after the verdict section has rendered.
@@ -51,7 +62,9 @@ This repository now hosts an isolated Binance Risk Copilot MVP built from the ea
 - Old Mission Control page routes and stale API routes were removed from the isolated app surface.
 - Public GitHub repo: `https://github.com/dolepee/binance-risk-copilot`
 - Public demo URL: `https://dolepee.github.io/binance-risk-copilot/`
+- Latest published commit: `2ba1b3b` (`Apply final UI polish pass`)
 - The VPS deployment remains internal on port `3002`; the raw VPS IP is not used as the public demo link.
+- The public `/demo` route was removed before submission so judge notes are not exposed on the live site.
 - The current scenario calibration is:
   - `safe` -> score `90`
   - `caution` -> score `59`

@@ -36,8 +36,6 @@ This project is a focused demo app for the Binance build challenge. It does not 
 ## Routes
 - `/`
   - main risk workbench
-- `/demo`
-  - short judge-facing recording script and walkthrough
 
 ## Stack
 - Next.js App Router
@@ -67,8 +65,6 @@ All three pass in the current state.
   - main UI, assistant flow, and one-click demo states
 - `src/components/app-shell.tsx`
   - top-level shell and branding
-- `src/app/demo/page.tsx`
-  - recording notes for the submission demo
 - `src/app/globals.css`
   - visual system and workbench styling
 
@@ -87,4 +83,4 @@ All three pass in the current state.
 - Add recording mode to hide form clutter during capture
 - Optionally wire read-only live Binance market data
 - Add a custom domain later if you want a shorter branded URL than GitHub Pages
-- Package a short demo video using the existing `/demo` script
+- Package a short demo video using a private script or speaker notes, not a public route
