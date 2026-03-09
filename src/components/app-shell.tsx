@@ -95,10 +95,6 @@ export function AppShell({ children }: Props) {
             </button>
           </div>
         </div>
-        <div className="appHeaderNote">
-          <span className="badge badgeWarn">Judge-ready MVP</span>
-          <span>Three steps: set the trade, get the verdict, use the safer setup.</span>
-        </div>
       </header>
 
       <main id="main-content" tabIndex={-1}>

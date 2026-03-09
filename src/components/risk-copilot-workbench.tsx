@@ -965,13 +965,6 @@ export function RiskCopilotWorkbench() {
         </>
       ) : null}
 
-      <section className="demoCallout">
-        <div>
-          <span className="sectionStep">Demo ready</span>
-          <p>Pick a scenario for instant proof, or use the form to stage your own Binance Futures trade.</p>
-        </div>
-        {activeScenario ? <span className={`riskStatus riskStatus-${activeScenario.expectedStatus}`}>Loaded: {activeScenario.label}</span> : null}
-      </section>
     </section>
   );
 }
